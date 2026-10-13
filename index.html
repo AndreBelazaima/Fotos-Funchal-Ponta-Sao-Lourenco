@@ -75,6 +75,11 @@
   .proj-title{display:flex; flex-direction:column; gap:1px; min-width:0;}
   .proj-title h1{font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .proj-title .proj-sub{font-size:11.5px; color:var(--ink-soft);}
+  .troco-switch{display:flex; gap:2px; background:var(--paper); border:1px solid var(--line-strong); border-radius:9px; padding:2px; margin-left:14px; flex:0 0 auto;}
+  .troco-switch a{font-size:12px; font-weight:600; color:var(--ink-soft); text-decoration:none; padding:6px 11px; border-radius:7px; white-space:nowrap;}
+  .troco-switch a:hover{color:var(--ink);}
+  .troco-switch a.active{background:var(--gold); color:#4A3300;}
+  @media (max-width:860px){ .troco-switch{margin-left:6px;} .troco-switch a{padding:6px 8px; font-size:11.5px;} }
   .topbar-stats{
     margin-left:auto;
     display:flex;
@@ -571,15 +576,16 @@
     </div>
     <div class="divider-v"></div>
     <div class="proj-title">
-      <h1>Nivelamento Funchal &rarr; Ponta de São Lourenço</h1>
+      <h1 id="projTitle">Nivelamento Funchal &rarr; Ponta de São Lourenço</h1>
       <span class="proj-sub">Linha de nivelamento geométrico &middot; Funchal, Madeira</span>
     </div>
+    <nav class="troco-switch" id="trocoSwitch" aria-label="Escolher troço"></nav>
     <div class="topbar-stats">
       <div class="stat"><b id="statTotal">95</b><span>Pontos</span></div>
       <div class="stat"><b id="statPhotos">86</b><span>Com foto</span></div>
-      <div class="stat"><b>39,45</b><span>km</span></div>
+      <div class="stat"><b id="statKm">39,45</b><span>km</span></div>
     </div>
-    <a class="nav-link" href="progresso.html" style="margin-left:16px; font-size:12.5px; font-weight:600; color:var(--ink); text-decoration:none; border:1px solid var(--line-strong); border-radius:8px; padding:8px 14px; white-space:nowrap;">Progresso do nivelamento &rarr;</a>
+    <a class="nav-link" id="progressLink" href="progresso.html" style="margin-left:16px; font-size:12.5px; font-weight:600; color:var(--ink); text-decoration:none; border:1px solid var(--line-strong); border-radius:8px; padding:8px 14px; white-space:nowrap;">Progresso do nivelamento &rarr;</a>
   </header>
 
   <div class="body-row">
@@ -728,7 +734,7 @@
        <div class="profile-header" id="profileHeader">
          <h4>Perfil longitudinal</h4>
          <div class="profile-stats">
-           <span>Extensão <b>39,45 km</b></span>
+           <span>Extensão <b id="pfExt">39,45 km</b></span>
            <span>Cota mín. <b id="pfMin">&mdash;</b></span>
            <span>Cota máx. <b id="pfMax">&mdash;</b></span>
          </div>
@@ -774,8 +780,20 @@
   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
   integrity="sha256-Hk4dIpcqOSb0hZjgyvFOP+cEmDXUKKNE/tT542ZbNQg=" crossorigin=""></script>
-<script src="mapdata.js"></script>
-<script src="derivacoes.js"></script>
+<script>
+// Troços do projeto. Escolhe-se com ?t=rb (por omissão: Ponta de São Lourenço, para os links e QR codes antigos).
+const SECOES = {
+  psl: { id:'psl', curto:'Ponta de São Lourenço', titulo:'Nivelamento Funchal → Ponta de São Lourenço',
+         doc:'Nivelamento Funchal – Ponta de São Lourenço', km:'39,45',
+         mapdata:'mapdata.js', derivacoes:'derivacoes.js', linhas:'linhas_mapa.js', progresso:'progresso.html' },
+  rb:  { id:'rb', curto:'Ribeira Brava', titulo:'Nivelamento Funchal → Ribeira Brava',
+         doc:'Nivelamento Funchal – Ribeira Brava', km:'27,2',
+         mapdata:'mapdata_rb.js', derivacoes:null, linhas:'linhas_mapa_rb.js', progresso:'progresso_rb.html' }
+};
+const SECAO = SECOES[new URLSearchParams(location.search).get('t')] || SECOES.psl;
+document.write('<script src="' + SECAO.mapdata + '"><\/script>');
+if(SECAO.derivacoes) document.write('<script src="' + SECAO.derivacoes + '"><\/script>');
+</script>
 <script src="qrcode-generator.js"></script>
 <script>
 const CATS = {
@@ -788,6 +806,7 @@ const CATS = {
 
 function categorize(name){
   if(/^AUX\d+$/i.test(name)) return 'aux';
+  if(/^\d+[A-Z]$/i.test(name)) return 'aux';
   if(/^NP\d+$/i.test(name)) return 'no';
   if(/^T\d+$/i.test(name)) return 'test';
   if(/^\d+(\+\d{3})?$/.test(name)) return 'estaca';
@@ -795,6 +814,16 @@ function categorize(name){
 }
 
 POINTS.forEach(p => { p.cat = categorize(p.n); p.hasImg = !!p.img; });
+
+(function aplicarTroco(){
+  document.title = SECAO.doc;
+  document.getElementById('projTitle').textContent = SECAO.titulo;
+  document.getElementById('statKm').textContent = SECAO.km;
+  document.getElementById('pfExt').textContent = SECAO.km + ' km';
+  document.getElementById('progressLink').href = SECAO.progresso;
+  document.getElementById('trocoSwitch').innerHTML = Object.values(SECOES).map(s =>
+    `<a href="${s.id === 'psl' ? 'index.html' : 'index.html?t=' + s.id}"${s.id === SECAO.id ? ' class="active" aria-current="page"' : ''}>${s.curto}</a>`).join('');
+})();
 
 const state = {
   search: '',
@@ -2009,7 +2038,7 @@ const Linhas = (function(){
         <div class="row"><dt>Início \u2192 fim</dt><dd>${fmtTime(l.inicio)} \u2192 ${fmtTime(l.fim)}</dd></div>
       </dl>
       ${l.aprox ? '<div style="margin:0 16px 10px;font-size:11px;color:var(--ink-soft);">Troço aproximado: esta linha ainda não tem posição GPS própria.</div>' : ''}
-      <a class="popup-link" href="progresso.html#${l.linha}">Abrir o resumo completo da linha &rarr;</a>
+      <a class="popup-link" href="${SECAO.progresso}#${l.linha}">Abrir o resumo completo da linha &rarr;</a>
     </div>`;
   }
 
@@ -2109,7 +2138,7 @@ const Linhas = (function(){
 
   function load(){
     const sc = document.createElement('script');
-    sc.src = 'linhas_mapa.js?t=' + Date.now();   // evita a cache do navegador/GitHub Pages
+    sc.src = SECAO.linhas + '?t=' + Date.now();   // evita a cache do navegador/GitHub Pages
     sc.onload = () => {
       sc.remove();
       if(window.LINHAS_MAPA && Array.isArray(window.LINHAS_MAPA.linhas)){ data = window.LINHAS_MAPA; build(); updateStale(); }

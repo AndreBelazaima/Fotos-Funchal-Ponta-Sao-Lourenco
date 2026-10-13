@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Progresso do Nivelamento &ndash; Funchal &ndash; Ribeira Brava</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold:#D9A115; --gold-dark:#AD7C0C; --gray:#6E747A; --ink:#22252A; --ink-soft:#5B5F65;
+    --paper:#F6F4EF; --surface:#FFFFFF; --line:#E6E1D6; --line-strong:#D6D0C2;
+    --shadow:0 6px 24px rgba(34,37,42,.12);
+    --good:#4B7F52; --good-soft:rgba(75,127,82,.12);
+    --bad:#C1471D; --bad-soft:rgba(193,71,29,.12);
+    --live:#AD7C0C; --live-soft:rgba(173,124,12,.14);
+    --gold-soft:rgba(217,161,21,.14);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--paper); color:var(--ink); font-family:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,Arial,sans-serif; -webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Archivo',system-ui,sans-serif; text-wrap:balance; margin:0;}
+  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums;}
+  a{color:inherit;}
+
+  /* ---- topbar (igual ao index.html) ---- */
+  .topbar{display:flex; align-items:center; gap:14px; padding:0 18px; height:60px; background:var(--surface); border-bottom:1px solid var(--line);}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-mark{width:34px; height:34px; flex:0 0 auto;}
+  .brand-text{display:flex; flex-direction:column; line-height:1.05;}
+  .brand-text .geo{font-family:'Archivo',sans-serif; font-weight:800; font-size:19px;}
+  .brand-text .geo span.g{color:var(--gold-dark);} .brand-text .geo span.i{color:var(--gray);}
+  .brand-text .sub{font-size:9.5px; letter-spacing:.14em; color:var(--ink-soft); font-weight:600; text-transform:uppercase; margin-top:1px;}
+  .divider-v{width:1px; align-self:stretch; margin:12px 4px; background:var(--line-strong);}
+  .proj-title{display:flex; flex-direction:column; gap:1px; min-width:0;}
+  .proj-title h1{font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .proj-title .proj-sub{font-size:11.5px; color:var(--ink-soft);}
+  .nav-link{margin-left:auto; font-size:12.5px; font-weight:600; color:var(--ink); text-decoration:none; border:1px solid var(--line-strong); border-radius:8px; padding:8px 14px; white-space:nowrap;}
+  .nav-link:hover{border-color:var(--gold);}
+  .troco-switch{display:flex; gap:2px; background:var(--paper); border:1px solid var(--line-strong); border-radius:9px; padding:2px; margin-left:14px; flex:0 0 auto;}
+  .troco-switch a{font-size:12px; font-weight:600; color:var(--ink-soft); text-decoration:none; padding:6px 11px; border-radius:7px; white-space:nowrap;}
+  .troco-switch a:hover{color:var(--ink);}
+  .troco-switch a.active{background:var(--gold); color:#4A3300;}
+  .empty-card{padding:28px 22px; text-align:center; color:var(--ink-soft); line-height:1.55;}
+  .empty-card b{color:var(--ink);}
+  .empty-card a{color:var(--gold-dark); font-weight:600;}
+  @media (max-width:760px){ .troco-switch{margin-left:6px;} .troco-switch a{padding:6px 8px; font-size:11.5px;} }
+
+  .page{max-width:1420px; margin:0 auto; padding:26px 20px 60px; display:flex; flex-direction:column; gap:20px;}
+  .updated{font-size:12px; color:var(--ink-soft); display:flex; align-items:center; flex-wrap:wrap; gap:9px;}
+  .updated.stale{color:var(--bad); font-weight:600;}
+  .stale-banner{background:var(--bad-soft); color:var(--bad); border:1px solid var(--bad); border-radius:10px; padding:10px 14px; font-size:13px; font-weight:600; line-height:1.4;}
+  .verified-badge{display:inline-flex; align-items:center; gap:4px; padding:2px 9px; border-radius:20px; background:var(--good-soft); color:var(--good); font-size:10.5px; font-weight:600; cursor:default;}
+  .updated.stale .verified-badge{display:none;}
+
+  .kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;}
+  .kpi{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:var(--shadow);}
+  .kpi .label{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:600;}
+  .kpi .value{font-family:'IBM Plex Mono',monospace; font-size:24px; font-weight:600; margin-top:2px;}
+  .kpi .value.compact{font-size:18px;}
+  .kpi .value.good{color:var(--good);} .kpi .value.bad{color:var(--bad);}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); overflow:hidden;}
+  .card h3{font-size:14.5px; padding:14px 18px; border-bottom:1px solid var(--line);}
+  .charts{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .chart-card{padding:16px 18px;}
+  .chart-card svg{display:block; width:100%; height:auto;}
+  .bar-label{font-size:10.5px; fill:var(--ink-soft); font-family:'IBM Plex Sans';}
+  .bar-value{font-size:10.5px; fill:var(--ink); font-family:'IBM Plex Mono'; font-weight:600;}
+  .bar-track{fill:var(--paper);}
+  .bar{transition:filter .15s ease; animation:barGrow .55s cubic-bezier(.16,1,.3,1) both; transform-box:fill-box; transform-origin:left center;}
+  .bar:hover{filter:brightness(1.12);}
+  @keyframes barGrow{from{transform:scaleX(0);} to{transform:scaleX(1);}}
+  @media (prefers-reduced-motion:reduce){ .bar{animation:none;} }
+  .chart-tooltip{position:fixed; display:none; z-index:1000; background:var(--ink); color:#fff; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; padding:4px 9px; border-radius:6px; pointer-events:none; box-shadow:0 4px 14px rgba(34,37,42,.28); white-space:nowrap;}
+  .chart-legend{display:flex; gap:14px; flex-wrap:wrap; font-size:10.5px; color:var(--ink-soft); padding:2px 2px 0; align-items:center;}
+  .chart-legend i{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:4px; vertical-align:-1px;}
+  .chart-legend .ref{display:inline-block; width:11px; height:0; border-top:2px dashed var(--bad); margin-right:4px; vertical-align:3px;}
+
+  .table-wrap{overflow-x:auto;}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); text-align:left; padding:9px 14px; white-space:nowrap; border-bottom:1px solid var(--line); background:var(--paper);}
+  td{padding:8px 14px; border-bottom:1px solid var(--line); white-space:nowrap; font-variant-numeric:tabular-nums;}
+  #linhas-table-wrap, #dias-table-wrap{max-height:328px; overflow-y:auto;}
+  #linhas-table-wrap th, #dias-table-wrap th{position:sticky; top:0; z-index:1;}
+  td.num{font-family:'IBM Plex Mono',monospace;}
+  tr.live td:first-child{box-shadow:inset 3px 0 0 var(--live);}
+  .badge{display:inline-block; padding:2px 9px; border-radius:99px; font-size:11px; font-weight:600;}
+  .badge.ok{background:var(--good-soft); color:var(--good);}
+  .badge.no{background:var(--bad-soft); color:var(--bad);}
+  .badge.live{background:var(--live-soft); color:var(--live); font-size:10px;}
+
+  footer{font-size:11px; color:var(--ink-soft); padding-top:14px; margin-top:6px; border-top:1px solid var(--line);}
+  footer .footer-brand{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  footer .footer-brand svg{width:20px; height:20px; flex:0 0 auto;}
+  footer .footer-brand span{font-family:'Archivo',sans-serif; font-weight:700; font-size:13px; color:var(--ink);}
+  footer .footer-brand span b{color:var(--gold-dark);}
+
+  @media (max-width:760px){ .charts{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="47" fill="none" stroke="#D9A115" stroke-width="6"/>
+      <circle cx="50" cy="50" r="38" fill="#D9A115"/>
+      <path d="M22 66 L40 34 L52 54 L60 42 L78 66 Z" fill="#6E747A"/>
+    </svg>
+    <div class="brand-text">
+      <span class="geo"><span class="g">Geo</span><span class="i">ide</span></span>
+      <span class="sub">Geosystems</span>
+    </div>
+  </div>
+  <div class="divider-v"></div>
+  <div class="proj-title">
+    <h1>Progresso do Nivelamento Funchal &rarr; Ribeira Brava</h1>
+    <span class="proj-sub">Leica LS15 &middot; nivelamento e contra-nivelamento, ramos A/B</span>
+  </div>
+  <nav class="troco-switch" aria-label="Escolher troço"><a href="progresso.html">Ponta de São Lourenço</a><a href="progresso_rb.html" class="active" aria-current="page">Ribeira Brava</a></nav>
+  <a class="nav-link" href="index.html?t=rb">&larr; Ver mapa e fotografias</a>
+</header>
+
+<div class="page">
+  <div class="updated"><span>Atualizado em 13/10/2026 19:01</span></div>
+  <div class="card"><div class="empty-card">
+    <b>Ainda sem linhas medidas neste troço.</b><br>As linhas a partir da <b>Linha200</b> aparecem aqui automaticamente assim que forem registadas no sistema de monitorização.<br><br>
+    <a href="index.html?t=rb">Ver mapa e fotografias do troço &rarr;</a>
+  </div></div>
+  <footer>
+    <br>Plataforma desenvolvida por Geoide Geosystems, SA.
+  </footer>
+</div>
+</body>
+</html>
