@@ -1,0 +1,88 @@
+// Botoes da barra do topo (mapa e paginas de progresso):
+//  - "Ecrã inteiro" (Fullscreen API; nos browsers sem ela, ex: iPhone, nao aparece);
+//  - "Tamanho" (A+): aumenta os textos e controlos para ecras grandes/TV (100% a 175%).
+//    Numa Smart TV (Samsung/Tizen, LG, etc.) arranca automaticamente a 150%.
+(function () {
+  var d = document, el = d.documentElement;
+  var bar = d.querySelector('.topbar');
+  if (!bar) return;
+  var isApp = window.matchMedia && (matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches);
+
+  // ---------- Tamanho da interface ----------
+  var LEVELS = [1, 1.25, 1.5, 1.75];
+  var KEY = 'ui-escala';
+  var isTV = /SMART-?TV|Tizen|Web0S|NetCast|HbbTV|TV Safari/i.test(navigator.userAgent);
+  function loadLevel() {
+    try { var v = parseFloat(localStorage.getItem(KEY)); if (LEVELS.indexOf(v) >= 0) return v; } catch (e) {}
+    return isTV ? 1.5 : 1;
+  }
+  var level = loadLevel();
+  var uiCss = d.createElement('style');
+  uiCss.textContent =
+    '.ui-zoom:not(.ui-prog) .topbar, .ui-zoom:not(.ui-prog) .sidebar{zoom:var(--ui);}' +
+    '.ui-zoom .topbar{flex-wrap:wrap; height:auto; min-height:60px; padding-top:6px; padding-bottom:6px; row-gap:6px;}' +
+    '.ui-zoom .proj-title{flex:1 1 220px;}' +
+    'html.ui-zoom.ui-prog{zoom:var(--ui);}' +
+    '.ui-zoom .leaflet-bar a{width:calc(30px*var(--ui)) !important; height:calc(30px*var(--ui)) !important; line-height:calc(30px*var(--ui)) !important; font-size:calc(18px*var(--ui)) !important;}' +
+    '.ui-zoom .leaflet-control-scale{font-size:calc(11px*var(--ui));}' +
+    '.ui-zoom .leaflet-popup-content{font-size:calc(13px*var(--ui)); width:auto !important; min-width:calc(220px*var(--ui));}';
+  d.head.appendChild(uiCss);
+  function applyLevel() {
+    el.style.setProperty('--ui', level);
+    el.classList.toggle('ui-zoom', level !== 1);
+    el.classList.toggle('ui-prog', !d.getElementById('map'));
+    if (window.map && map.invalidateSize) setTimeout(function () { map.invalidateSize(); }, 50);
+    window.dispatchEvent(new Event('resize'));
+  }
+  applyLevel();
+
+  var request = el.requestFullscreen || el.webkitRequestFullscreen;
+  var exit = d.exitFullscreen || d.webkitExitFullscreen;
+  var btnCss = d.createElement('style');
+  btnCss.textContent =
+    '.tb-btn{flex:0 0 auto; min-width:36px; height:36px; margin-left:10px; display:inline-flex; align-items:center; justify-content:center;' +
+    'background:var(--surface,#fff); border:1px solid var(--line-strong,#D6D0C2); border-radius:8px; color:var(--ink,#22252A); cursor:pointer; padding:0 8px; font:600 12px/1 inherit;}' +
+    '.tb-btn:hover,.tb-btn:focus-visible{border-color:var(--gold,#D9A115); outline:none;} .tb-btn svg{width:18px; height:18px;}';
+  d.head.appendChild(btnCss);
+  var sz = d.createElement('button');
+  sz.type = 'button'; sz.className = 'tb-btn';
+  function szLabel() { sz.innerHTML = 'A+ <span style="margin-left:4px;font-weight:500;opacity:.7">' + Math.round(level * 100) + '%</span>'; sz.title = 'Tamanho do texto e dos controlos (para TV)'; sz.setAttribute('aria-label', sz.title); }
+  szLabel();
+  sz.addEventListener('click', function () {
+    level = LEVELS[(LEVELS.indexOf(level) + 1) % LEVELS.length];
+    try { localStorage.setItem(KEY, String(level)); } catch (e) {}
+    applyLevel(); szLabel();
+  });
+  bar.appendChild(sz);
+
+  // ---------- Ecra inteiro ----------
+  if (!request || !exit || isApp) return;
+
+  var css = d.createElement('style');
+  css.textContent =
+    '.fs-btn .fs-off{display:none;} .fs-on .fs-btn .fs-off{display:block;} .fs-on .fs-btn .fs-on-i{display:none;}';
+  d.head.appendChild(css);
+
+  var attrs = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+  var b = d.createElement('button');
+  b.type = 'button'; b.className = 'tb-btn fs-btn'; b.title = 'Ecrã inteiro'; b.setAttribute('aria-label', 'Ecrã inteiro');
+  b.innerHTML =
+    '<svg class="fs-on-i" ' + attrs + '><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>' +
+    '<svg class="fs-off" ' + attrs + '><path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/></svg>';
+
+  function active() { return d.fullscreenElement || d.webkitFullscreenElement; }
+  function sync() {
+    var on = !!active();
+    el.classList.toggle('fs-on', on);
+    b.title = on ? 'Sair do ecrã inteiro' : 'Ecrã inteiro';
+    b.setAttribute('aria-label', b.title);
+  }
+  b.addEventListener('click', function () {
+    try {
+      if (active()) exit.call(d); else request.call(el);
+    } catch (e) { /* ignora: o browser pode recusar */ }
+  });
+  d.addEventListener('fullscreenchange', sync);
+  d.addEventListener('webkitfullscreenchange', sync);
+  bar.appendChild(b);
+})();
