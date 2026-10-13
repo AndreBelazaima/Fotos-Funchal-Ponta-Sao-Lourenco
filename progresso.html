@@ -37,6 +37,14 @@
   .proj-title .proj-sub{font-size:11.5px; color:var(--ink-soft);}
   .nav-link{margin-left:auto; font-size:12.5px; font-weight:600; color:var(--ink); text-decoration:none; border:1px solid var(--line-strong); border-radius:8px; padding:8px 14px; white-space:nowrap;}
   .nav-link:hover{border-color:var(--gold);}
+  .troco-switch{display:flex; gap:2px; background:var(--paper); border:1px solid var(--line-strong); border-radius:9px; padding:2px; margin-left:14px; flex:0 0 auto;}
+  .troco-switch a{font-size:12px; font-weight:600; color:var(--ink-soft); text-decoration:none; padding:6px 11px; border-radius:7px; white-space:nowrap;}
+  .troco-switch a:hover{color:var(--ink);}
+  .troco-switch a.active{background:var(--gold); color:#4A3300;}
+  .empty-card{padding:28px 22px; text-align:center; color:var(--ink-soft); line-height:1.55;}
+  .empty-card b{color:var(--ink);}
+  .empty-card a{color:var(--gold-dark); font-weight:600;}
+  @media (max-width:760px){ .troco-switch{margin-left:6px;} .troco-switch a{padding:6px 8px; font-size:11.5px;} }
 
   .page{max-width:1420px; margin:0 auto; padding:26px 20px 60px; display:flex; flex-direction:column; gap:20px;}
   .updated{font-size:12px; color:var(--ink-soft); display:flex; align-items:center; flex-wrap:wrap; gap:9px;}
@@ -110,12 +118,13 @@
     <h1>Progresso do Nivelamento Funchal &rarr; Ponta de São Lourenço</h1>
     <span class="proj-sub">Leica LS15 &middot; nivelamento e contra-nivelamento, ramos A/B</span>
   </div>
+  <nav class="troco-switch" aria-label="Escolher troço"><a href="progresso.html" class="active" aria-current="page">Ponta de São Lourenço</a><a href="progresso_rb.html">Ribeira Brava</a></nav>
   <a class="nav-link" href="index.html">&larr; Ver mapa e fotografias</a>
 </header>
 
 <div class="page">
-  <div class="updated" id="updated" data-iso="2026-10-13T18:53:58+01:00">
-    <span>Atualizado em 13/10/2026 18:53 <span id="updated-age"></span></span>
+  <div class="updated" id="updated" data-iso="2026-10-13T19:05:36+01:00">
+    <span>Atualizado em 13/10/2026 19:05 <span id="updated-age"></span></span>
     <span class="verified-badge" title="Antes de publicar, o robo confirma que o numero de linhas e de leituras nunca diminuiu. Se algo parecer errado, a publicacao e recusada e mantem-se a ultima versao valida.">&check; Dados verificados automaticamente</span>
   </div>
   <div class="stale-banner" id="stale-banner" hidden></div>
