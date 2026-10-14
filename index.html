@@ -458,6 +458,12 @@
     content:''; position:absolute; inset:-9px; border-radius:50%; border:2.5px solid var(--cat-no);
     animation:ls15pulse 1.6s ease-out infinite;
   }
+  .ls15-label.stale{background:#8A8478; border-color:#8A8478; box-shadow:0 2px 7px rgba(60,60,60,.35);}
+  .ls15-marker.stale .ls15-dot{background:#8A8478; box-shadow:0 1px 5px rgba(0,0,0,.4), 0 0 0 5px rgba(138,132,120,.30);}
+  .ls15-marker.stale .ls15-dot::after{display:none;}
+  .profile-chart .pf-ls15-guide.stale{stroke:#8A8478;}
+  .profile-chart .pf-ls15-dot.stale{fill:#8A8478;}
+  .profile-chart .pf-ls15-label.stale{fill:#8A8478;}
   @keyframes ls15pulse{
     0%{ transform:scale(.55); opacity:.95; }
     100%{ transform:scale(2.3); opacity:0; }
@@ -987,7 +993,24 @@ POINTS.forEach(p => {
 // ---------------- Posicao LS15 (GPS ao vivo do nivel) ----------------
 // Posicao real do telemovel do operador, registada pela Galileo2000 sempre
 // que uma linha de nivelamento e concluida. Atualizado automaticamente.
+const LS15_MAX_LIVE_MIN = 6 * 60;   // acima disto a posicao passa a "ultima posicao conhecida"
+function ls15Date(){
+  const t = (typeof LS15_POS !== 'undefined' && LS15_POS) ? String(LS15_POS.tempo || '') : '';
+  return t.length === 12 ? new Date(2000 + +t.slice(0,2), +t.slice(2,4) - 1, +t.slice(4,6), +t.slice(6,8), +t.slice(8,10), +t.slice(10,12)) : null;
+}
+function ls15Stale(){ const d = ls15Date(); return !!d && (Date.now() - d.getTime()) / 60000 > LS15_MAX_LIVE_MIN; }
+function ls15AgeText(){
+  const d = ls15Date(); if(!d) return '';
+  const min = Math.max(0, (Date.now() - d.getTime()) / 60000);
+  if(min < 60) return 'há ' + Math.round(min) + ' min';
+  const h = min / 60;
+  if(h < 48) return 'há ' + Math.round(h) + ' h';
+  const dias = Math.round(h / 24);
+  return 'há ' + dias + (dias === 1 ? ' dia' : ' dias');
+}
+function ls15Label(){ return ls15Stale() ? 'Última posição · ' + ls15AgeText() : 'Equipa'; }
 function ls15PopupHtml(p){
+  const stale = ls15Stale();
   const t = String(p.tempo || '');
   const dataFmt = t.length === 12
     ? `${t.slice(4,6)}/${t.slice(2,4)}/20${t.slice(0,2)} ${t.slice(6,8)}:${t.slice(8,10)}:${t.slice(10,12)}`
@@ -995,30 +1018,45 @@ function ls15PopupHtml(p){
   return `
     <div class="geoide-popup">
       <div class="popup-head">
-        <span class="tag" style="--c:#C1471D">Equipa &ndash; posição GPS</span>
+        <span class="tag" style="--c:${stale ? '#8A8478' : '#C1471D'}">${stale ? 'Última posição conhecida' : 'Equipa &ndash; posição GPS'}</span>
       </div>
       <div style="padding:0 16px 10px 16px;"><h3>${p.ponto || '&mdash;'}</h3></div>
       <dl class="popup-data">
         <div class="row"><dt>Linha</dt><dd>${p.linha || '&mdash;'}</dd></div>
         <div class="row"><dt>Cota (z)</dt><dd>${p.elev != null ? p.elev.toFixed(2) + ' m' : '&mdash;'}</dd></div>
         <div class="row"><dt>Lat / Lon</dt><dd>${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}</dd></div>
-        <div class="row"><dt>Registado em</dt><dd>${dataFmt}</dd></div>
+        <div class="row"><dt>Registado em</dt><dd>${dataFmt}${stale ? ' (' + ls15AgeText() + ')' : ''}</dd></div>
       </dl>
     </div>`;
 }
 let ls15Marker = null;
 if (typeof LS15_POS !== 'undefined' && LS15_POS) {
-  const ls15Icon = L.divIcon({
-    className: 'ls15-marker',
+  const mkIcon = stale => L.divIcon({
+    className: 'ls15-marker' + (stale ? ' stale' : ''),
     html: `<div class="ls15-dot"></div>`,
     iconSize: [22, 22],
     iconAnchor: [11, 11],
     popupAnchor: [0, -11]
   });
-  ls15Marker = L.marker([LS15_POS.lat, LS15_POS.lon], { icon: ls15Icon, zIndexOffset: 1000 });
-  ls15Marker.bindPopup(ls15PopupHtml(LS15_POS), { className:'geoide-popup', maxWidth:320, minWidth:296 });
-  ls15Marker.bindTooltip('Equipa', { permanent:true, direction:'right', offset:[14,0], className:'ls15-label', interactive:false });
+  ls15Marker = L.marker([LS15_POS.lat, LS15_POS.lon], { icon: mkIcon(ls15Stale()), zIndexOffset: 1000 });
+  ls15Marker.bindPopup(() => ls15PopupHtml(LS15_POS), { className:'geoide-popup', maxWidth:320, minWidth:296 });
   ls15Marker.addTo(map);
+  // Etiqueta/cor conforme a posicao seja recente ("Equipa") ou antiga ("Ultima posicao - ha N dias").
+  let ls15Shown = null;
+  function refreshLs15(){
+    const stale = ls15Stale(), label = ls15Label();
+    if(ls15Shown === null || ls15Shown.stale !== stale){
+      ls15Marker.setIcon(mkIcon(stale));
+      ls15Marker.unbindTooltip();
+      ls15Marker.bindTooltip(label, { permanent:true, direction:'right', offset:[14,0], className:'ls15-label' + (stale ? ' stale' : ''), interactive:false });
+      if(ls15Shown !== null && typeof renderProfile === 'function') renderProfile();
+    } else if(ls15Shown.label !== label){
+      ls15Marker.setTooltipContent(label);
+    }
+    ls15Shown = { stale, label };
+  }
+  refreshLs15();
+  setInterval(refreshLs15, 60000);
 }
 document.getElementById('ls15Toggle').addEventListener('change', e => {
   if (!ls15Marker) return;
@@ -1462,10 +1500,11 @@ function renderProfile(){
     const ly = y(LS15_PROFILE.elev).toFixed(1);
     const labelAbove = LS15_PROFILE.elev/yMax < 0.85;
     const ltY = labelAbove ? (parseFloat(ly)-9).toFixed(1) : (parseFloat(ly)+15).toFixed(1);
-    ls15MarkerSvg = `<line class="pf-ls15-guide" x1="${lx}" x2="${lx}" y1="${padT}" y2="${baseY.toFixed(1)}"/>
-    <circle class="pf-ls15-dot" cx="${lx}" cy="${ly}" r="4"></circle>
+    const sc = ls15Stale() ? ' stale' : '';
+    ls15MarkerSvg = `<line class="pf-ls15-guide${sc}" x1="${lx}" x2="${lx}" y1="${padT}" y2="${baseY.toFixed(1)}"/>
+    <circle class="pf-ls15-dot${sc}" cx="${lx}" cy="${ly}" r="4"></circle>
     <circle class="pf-ls15-hit" cx="${lx}" cy="${ly}" r="9" fill="transparent"></circle>
-    <text class="pf-ls15-label" x="${lx}" y="${ltY}" text-anchor="middle">Equipa</text>`;
+    <text class="pf-ls15-label${sc}" x="${lx}" y="${ltY}" text-anchor="middle">${sc ? 'Última posição' : 'Equipa'}</text>`;
   }
 
   let segSvg = '';
