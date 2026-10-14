@@ -127,8 +127,8 @@
 </header>
 
 <div class="page">
-  <div class="updated" id="updated" data-iso="2026-10-14T13:55:50+01:00">
-    <span>Atualizado em 14/10/2026 13:55 <span id="updated-age"></span></span>
+  <div class="updated" id="updated" data-iso="2026-10-14T14:04:16+01:00">
+    <span>Atualizado em 14/10/2026 14:04 <span id="updated-age"></span></span>
     <span class="verified-badge" title="Antes de publicar, o robo confirma que o numero de linhas e de leituras nunca diminuiu. Se algo parecer errado, a publicacao e recusada e mantem-se a ultima versao valida.">&check; Dados verificados automaticamente</span>
   </div>
   <div class="stale-banner" id="stale-banner" hidden></div>
@@ -224,13 +224,13 @@
 </div>
 
 <script>
-const LINES = [{"linha": "Linha200", "estado": "Concluida", "estacoes": 0, "comprimento": 40.79, "dh": 0.67, "duracao_h": 0.0, "ef": 0.0, "toll": 0.3, "ef_pct": 0.0, "resultado": "Aprovado", "rendimento": 0, "estacoes_h": 0, "tempo_medio_min": 0, "leituras": 0, "invalidas": 0, "taxa_rep": 0, "pontos_controlo": 0, "delta_medio": 0, "delta_max": 0, "inicio": null, "fim": null, "declive": 0.0329, "estacoes_km": 0.0, "dist_deseq_medio": 0, "dist_deseq_max": 0, "pct_fora_mira": 0, "n_fora_mira": 0, "n_leituras_mira": 0, "comprimento_um_sentido": 20.395, "tol_tecnica": 0.21421659599573512, "resultado_tecnico": "Aprovado", "comprimento_galileo_main": 20.395}];
-const DAYS = [];
+const LINES = [{"linha": "Linha200", "estado": "Possivelmente em curso (ultima leitura hoje)", "estacoes": 3, "comprimento": 227.777, "dh": 3.222, "duracao_h": 0.1333, "ef": 0.0, "toll": 0.72, "ef_pct": 0.0, "resultado": "Aprovado", "rendimento": 854.3735933983496, "estacoes_h": 22.50562640660165, "tempo_medio_min": 2.666, "leituras": 4, "invalidas": 0, "taxa_rep": 0.0, "pontos_controlo": 0, "delta_medio": 0, "delta_max": 0, "inicio": "2026-10-14T13:55:29", "fim": "2026-10-14T14:00:22", "declive": 0.0283, "estacoes_km": 13.170776680700863, "dist_deseq_medio": 0.09450000000000003, "dist_deseq_max": 0.2010000000000005, "pct_fora_mira": 0.0, "n_fora_mira": 0, "n_leituras_mira": 8, "comprimento_um_sentido": 113.888, "tol_tecnica": 0.5062094428198668, "resultado_tecnico": "Aprovado", "comprimento_galileo_main": 113.888}];
+const DAYS = [{"data": "2026-10-14", "n_linhas": 1, "estacoes": 3, "comprimento": 113.888, "duracao_ativa": 0.1333, "rendimento": 854.3735933983496, "inicio": "2026-10-14T13:55:29", "fim": "2026-10-14T14:00:22", "duracao_total": 0.08138888888888889, "estacoes_km": 13.170776680700863, "declive_medio": 14.145414155072725, "leituras": 4, "invalidas": 0, "taxa_rep": 0.0, "ef_medio": 0.0, "aprovadas": 1, "reprovadas": 0}];
 const SHOW_FORECAST = false;
-const PROFILES = {"Linha200": []};
-const PROGRESS = {"total_km": 27.2, "done_km": 1.232798999999999, "remaining_km": null, "metodo": "galileo_total", "gps_ponto": null, "gps_linha": null, "gps_precisao_m": null, "remaining_metodo": "sem_gps", "remaining_gps_ponto": null, "remaining_gps_linha": null, "forecast": null};
-const MIRA_HIST = {"counts": [0, 0, 0], "pct": [0, 0, 0], "total": 0};
-const RAW = {"Linha200": []};
+const PROFILES = {"Linha200": [{"x": 0.0, "y": 1.3404, "point": "SPA3040"}, {"x": 52.4, "y": 2.4669, "point": "SPA3041"}, {"x": 113.9, "y": 3.2236, "point": "SPA3042"}]};
+const PROGRESS = {"total_km": 27.2, "done_km": 1.3262920000000014, "remaining_km": null, "metodo": "galileo_total", "gps_ponto": null, "gps_linha": null, "gps_precisao_m": null, "remaining_metodo": "sem_gps", "remaining_gps_ponto": null, "remaining_gps_linha": null, "forecast": null};
+const MIRA_HIST = {"counts": [0, 8, 0], "pct": [0.0, 100.0, 0.0], "total": 8};
+const RAW = {"Linha200": [[3, "SPA3040", 16.738, 2.1741, 1.3404, "SPA3041", 16.939, 1.0476, 2.4669, 1.1265, null, "D", "A", "V", "14/10/26 13:55:29"], [4, "SPB3040", 16.759, 2.1724, 1.3422, "SPB3041", 16.896, 1.0419, 2.4727, 1.1305, null, "D", "B", "V", "14/10/26 13:56:27"], [5, "SPA3041", 19.696, 1.6975, 2.4669, "SPA3042", 19.717, 0.9408, 3.2236, 0.7567, null, "D", "A", "V", "14/10/26 13:59:32"], [6, "SPB3041", 19.734, 1.6916, 2.4727, "SPB3042", 19.715, 0.9439, 3.2203, 0.7477, null, "D", "B", "V", "14/10/26 14:00:22"]]};
 function fmt(n, d=1){ return (n===null||n===undefined||isNaN(n)) ? '-' : Number(n).toLocaleString('pt-PT',{minimumFractionDigits:d,maximumFractionDigits:d}); }
 function fmtDT(iso){ if(!iso) return '-'; const d=new Date(iso); return d.toLocaleString('pt-PT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
 function fmtDate(iso){ const d=new Date(iso); return d.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit',year:'numeric'}); }
