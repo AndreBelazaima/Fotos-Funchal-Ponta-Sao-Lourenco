@@ -127,15 +127,471 @@
 </header>
 
 <div class="page">
-  <div class="updated"><span>Atualizado em 14/10/2026 13:47</span></div>
-  <div class="card"><div class="empty-card">
-    <b>Ainda sem linhas medidas neste troço.</b><br>As linhas a partir da <b>Linha200</b> aparecem aqui automaticamente assim que forem registadas no sistema de monitorização.<br><br>
-    <a href="index.html?t=rb">Ver mapa e fotografias do troço &rarr;</a>
-  </div></div>
+  <div class="updated" id="updated" data-iso="2026-10-14T13:55:50+01:00">
+    <span>Atualizado em 14/10/2026 13:55 <span id="updated-age"></span></span>
+    <span class="verified-badge" title="Antes de publicar, o robo confirma que o numero de linhas e de leituras nunca diminuiu. Se algo parecer errado, a publicacao e recusada e mantem-se a ultima versao valida.">&check; Dados verificados automaticamente</span>
+  </div>
+  <div class="stale-banner" id="stale-banner" hidden></div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <h3>Análise Estatística</h3>
+    <div class="charts" style="padding:16px 18px 0;">
+      <div class="chart-card"><h3 style="padding:0 0 10px; border:none;">Erro de fecho vs Tolerancia (mm)</h3><svg id="chart-ef" viewBox="0 0 540 240"></svg><div class="chart-legend"><span><i style="background:var(--good)"></i>Aprovado</span><span><i style="background:var(--bad)"></i>Reprovado</span><span><b class="ref"></b>Tolerancia</span></div><p id="chart-ef-note" style="font-size:11.5px; color:var(--ink-soft); margin:6px 0 0;"></p></div>
+      <div class="chart-card"><h3 style="padding:0 0 10px; border:none;">Rendimento por linha (m/h)</h3><svg id="chart-rend" viewBox="0 0 540 240"></svg><p id="chart-rend-note" style="font-size:11.5px; color:var(--ink-soft); margin:6px 0 0;"></p></div>
+    </div>
+    <div class="chart-card" style="padding:16px 18px;" hidden>
+      <h3 style="padding:0 0 10px; border:none;">Declive vs rendimento (cada ponto = 1 linha)</h3>
+      <svg id="chart-scatter" viewBox="0 0 860 300" style="display:block; width:100%; height:auto;"></svg>
+      <p style="font-size:12px; color:var(--ink-soft); margin:8px 0 0;">Testa se terreno mais inclinado reduz o rendimento - se os pontos descerem da esquerda para a direita, a correlacao confirma-se.</p>
+    </div>
+    <div class="chart-card" style="padding:16px 18px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <h3 style="padding:0; border:none;">Desequilibrio de miras por linha (m)</h3>
+        <div style="display:flex; gap:16px; font-size:12px; color:var(--ink-soft);">
+          <span><span style="display:inline-block; width:9px; height:9px; border-radius:2px; background:var(--gray); margin-right:5px;"></span>Media da linha</span>
+          <span><span style="display:inline-block; width:9px; height:9px; border-radius:2px; background:var(--bad); margin-right:5px;"></span>Pior estacao</span>
+        </div>
+      </div>
+      <svg id="chart-deseq" viewBox="0 0 860 300" style="display:block; width:100%; height:auto; margin-top:8px;"></svg>
+      <p id="chart-deseq-note" style="font-size:11.5px; color:var(--ink-soft); margin:6px 0 0;"></p>
+      <p style="font-size:12px; color:var(--ink-soft); margin:4px 0 0;">Diferenca entre a distancia à mira atrás e à mira da frente em cada estacao.</p>
+    </div>
+    <div class="chart-card" style="padding:16px 18px;">
+      <h3 style="padding:0 0 10px; border:none;">Distribuição das Leituras na Mira (3 m)</h3>
+      <svg id="chart-mira-hist" viewBox="0 0 860 260" style="display:block; width:100%; height:auto;"></svg>
+      <p style="font-size:11.5px; color:var(--ink-soft); margin:6px 0 0;">A vermelho, os primeiros e os últimos 30cm da mira</p>
+    </div>
+    <div class="chart-card" style="padding:16px 18px;">
+      <h3 style="padding:0 0 10px; border:none;">Leituras fora da zona recomendada (%)</h3>
+      <svg id="chart-mira" viewBox="0 0 860 260" style="display:block; width:100%; height:auto;"></svg>
+      <p style="font-size:11.5px; color:var(--ink-soft); margin:6px 0 0;">O número a branco dentro de cada barra é o declive médio dessa linha - Permite verificar se há relação entre o declive e as leituras fora da zona recomendada da mira para ler</p>
+      <p id="chart-mira-note" style="font-size:11.5px; color:var(--ink-soft); margin:6px 0 0;"></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="padding:14px 18px; border-bottom:1px solid var(--line);">
+      <h3 style="padding:0; border:none;">Linhas</h3>
+    </div>
+    <div class="table-wrap" id="linhas-table-wrap"><table id="table-linhas"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:14px 18px; border-bottom:1px solid var(--line);">
+      <h3 style="padding:0; border:none;">Resumo da linha</h3>
+      <select id="profile-select" style="padding:8px 12px; border-radius:8px; border:1px solid var(--line-strong); background:var(--paper); font-family:inherit; font-size:13px; color:var(--ink);"></select>
+    </div>
+    <div id="line-card-grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; padding:16px 18px;"></div>
+    <div style="padding:0 18px 16px;">
+      <button id="raw-toggle" type="button" style="font-size:12.5px; font-weight:600; color:var(--ink); background:var(--paper); border:1px solid var(--line-strong); border-radius:8px; padding:7px 14px; cursor:pointer; font-family:inherit;">Ver dados brutos &#9662;</button>
+      <div id="raw-data-wrap" style="display:none; margin-top:12px; max-height:420px; overflow:auto; border:1px solid var(--line); border-radius:8px;">
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <thead><tr id="raw-head"></tr></thead>
+          <tbody id="raw-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="padding:14px 18px; border-bottom:1px solid var(--line);">
+      <h3 style="padding:0; border:none;">Perfil longitudinal da linha</h3>
+    </div>
+    <div style="padding:16px 18px;">
+      <div id="profile-stats" style="display:flex; gap:24px; margin:0 0 14px; flex-wrap:wrap;"></div>
+      <div style="position:relative;">
+        <svg id="chart-profile" viewBox="0 0 900 260" style="display:block; width:100%; height:auto;"></svg>
+        <div id="profile-tooltip" style="position:absolute; display:none; pointer-events:none; background:var(--ink); color:var(--surface); font-size:12px; font-family:'IBM Plex Mono',monospace; padding:5px 9px; border-radius:6px; white-space:nowrap; transform:translate(-50%,-115%); z-index:10;"></div>
+      </div>
+      <p style="font-size:12px; color:var(--ink-soft); margin:12px 0 0;">Cotas de campo, ainda nao ajustadas a rede geodesica oficial - cada linha parte de um referencial local proprio, por isso nao correspondem as cotas finais publicadas no mapa.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Progresso por dia</h3>
+    <div class="table-wrap" id="dias-table-wrap"><table id="table-dias"><thead></thead><tbody></tbody></table></div>
+  </div>
+
   <footer>
-    <br>Plataforma desenvolvida por Geoide Geosystems, SA.
+    <div class="footer-brand">
+      <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="none" stroke="#D9A115" stroke-width="6"/><circle cx="50" cy="50" r="38" fill="#D9A115"/><path d="M22 66 L40 34 L52 54 L60 42 L78 66 Z" fill="#6E747A"/></svg>
+      <span><b>Geo</b>ide Geosystems, SA</span>
+    </div>
+    EF/Tolerancia sao valores do sistema de monitorizacao Galileo2000. "Estado" e uma estimativa (ultima leitura de hoje = possivelmente em curso).
   </footer>
 </div>
+
+<script>
+const LINES = [{"linha": "Linha200", "estado": "Concluida", "estacoes": 0, "comprimento": 40.79, "dh": 0.67, "duracao_h": 0.0, "ef": 0.0, "toll": 0.3, "ef_pct": 0.0, "resultado": "Aprovado", "rendimento": 0, "estacoes_h": 0, "tempo_medio_min": 0, "leituras": 0, "invalidas": 0, "taxa_rep": 0, "pontos_controlo": 0, "delta_medio": 0, "delta_max": 0, "inicio": null, "fim": null, "declive": 0.0329, "estacoes_km": 0.0, "dist_deseq_medio": 0, "dist_deseq_max": 0, "pct_fora_mira": 0, "n_fora_mira": 0, "n_leituras_mira": 0, "comprimento_um_sentido": 20.395, "tol_tecnica": 0.21421659599573512, "resultado_tecnico": "Aprovado", "comprimento_galileo_main": 20.395}];
+const DAYS = [];
+const SHOW_FORECAST = false;
+const PROFILES = {"Linha200": []};
+const PROGRESS = {"total_km": 27.2, "done_km": 1.232798999999999, "remaining_km": null, "metodo": "galileo_total", "gps_ponto": null, "gps_linha": null, "gps_precisao_m": null, "remaining_metodo": "sem_gps", "remaining_gps_ponto": null, "remaining_gps_linha": null, "forecast": null};
+const MIRA_HIST = {"counts": [0, 0, 0], "pct": [0, 0, 0], "total": 0};
+const RAW = {"Linha200": []};
+function fmt(n, d=1){ return (n===null||n===undefined||isNaN(n)) ? '-' : Number(n).toLocaleString('pt-PT',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function fmtDT(iso){ if(!iso) return '-'; const d=new Date(iso); return d.toLocaleString('pt-PT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+function fmtDate(iso){ const d=new Date(iso); return d.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+function badge(text){ const ok = text==='Aprovado'; return `<span class="badge ${ok?'ok':'no'}">${text}</span>`; }
+
+(function renderKPIs(){
+  const totalEst = LINES.reduce((s,l)=>s+l.estacoes,0);
+  const totalDur = LINES.reduce((s,l)=>s+l.duracao_h,0);
+  const rend = totalDur? (PROGRESS.done_km*1000/totalDur):0;
+  const aprov = LINES.filter(l=>l.resultado==='Aprovado').length;
+  const aprovTec = LINES.filter(l=>l.resultado_tecnico==='Aprovado').length;
+  const totalForaMira = LINES.reduce((s,l)=>s+l.n_fora_mira,0);
+  const totalLeitMira = LINES.reduce((s,l)=>s+l.n_leituras_mira,0);
+  const pctForaMira = totalLeitMira? (totalForaMira/totalLeitMira*100):0;
+  const fmtDia = iso => new Date(iso + 'T12:00:00').toLocaleDateString('pt-PT', {day:'2-digit', month:'2-digit'});
+  const forecastTitle = f => `Ritmo ${f.janela}: ${fmt(f.km_dia,2)} km/dia (dias de calend\u00e1rio, incluindo dias sem trabalho). Faltam ${fmt(f.km_em_falta,2)} km \u2192 cerca de ${fmt(f.dias,0)} dias. Intervalo entre os ritmos (total, 14 e 7 dias): ${fmtDia(f.intervalo[0])} \u2013 ${fmtDia(f.intervalo[1])}.`;
+  const kpis = [
+    {label:'Comprimento total', value: fmt(PROGRESS.done_km,2)+' km', title: PROGRESS.metodo==='galileo_total' ? 'Valor "Total Length" do resumo do projeto na pagina principal do Galileo2000 (soma de todas as linhas).' : (PROGRESS.metodo==='gps' ? `Distancia real ao longo do tracado GPS, desde o inicio ate a ultima posicao GPS conhecida do operador (registada ao terminar a ${PROGRESS.gps_linha}, ponto ${PROGRESS.gps_ponto}, precisao ~${fmt(PROGRESS.gps_precisao_m,0)} m).` : 'Percurso num so sentido, somado a partir das distancias de vante reais de cada linha (ainda sem posicao GPS disponivel para calibrar).')},
+    {label:'Estacoes', value: totalEst},
+    {label:'Rendimento medio', value: fmt(rend,0)+' m/h'},
+    {label:'Linhas aprovadas', value: aprov+'/'+LINES.length, cls: aprov===LINES.length?'good':'bad'},
+    {label:'Aprovadas (Crit.2)', value: aprovTec+'/'+LINES.length, cls: 'good', title: 'Linhas com EF <= 1,5 x RAIZ(L em km), com L = comprimento so do nivelamento (sem contra-nivelamento).'},
+    {label:'Km em falta', value: fmt(PROGRESS.remaining_km,2)+' / '+fmt(PROGRESS.total_km,2)+' km', cls: 'compact ' + (PROGRESS.remaining_km!=null && PROGRESS.remaining_km<=0.05?'good':''), title: PROGRESS.remaining_metodo==='tracado_gps' ? `Tracado (${fmt(PROGRESS.total_km*1000,0)} m) menos a distancia da ultima posicao GPS conhecida (ponto ${PROGRESS.remaining_gps_ponto}, registado ao terminar a ${PROGRESS.remaining_gps_linha}).` : 'Ainda sem nenhuma posicao GPS disponivel na tabela de coordenadas do Galileo.'},
+    {label:'Fim previsto', value: PROGRESS.forecast ? '\u2248 ' + fmtDia(PROGRESS.forecast.data) : '\u2014', cls:'compact', title: PROGRESS.forecast ? forecastTitle(PROGRESS.forecast) : 'Sem dados suficientes para prever (precisa de pelo menos 2 dias de trabalho e de km em falta).'},
+    {label:'Fora da zona segura (mira)', value: fmt(pctForaMira,1)+'%', cls: pctForaMira<=5?'good':'bad'},
+  ];
+  document.getElementById('kpis').innerHTML = kpis.filter(k=> SHOW_FORECAST || k.label !== 'Fim previsto').map(k=>`<div class="kpi" title="${k.title||''}"><div class="label">${k.label}</div><div class="value ${k.cls||''}">${k.value}</div></div>`).join('');
+})();
+
+const BAR_PX = 11; // grossura das barras (px reais), igual em todos os graficos
+
+// Tooltip partilhado por todos os graficos de barras (um so elemento, reutilizado).
+function chartTooltipEl(){
+  let el = document.getElementById('chartTooltip');
+  if(!el){ el = document.createElement('div'); el.id = 'chartTooltip'; el.className = 'chart-tooltip'; document.body.appendChild(el); }
+  return el;
+}
+function attachBarHover(svg){
+  const tip = chartTooltipEl();
+  svg.addEventListener('mousemove', e=>{
+    const r = e.target.closest && e.target.closest('rect[data-tip]');
+    if(!r){ tip.style.display = 'none'; return; }
+    tip.textContent = r.getAttribute('data-tip');
+    tip.style.left = (e.clientX+12)+'px'; tip.style.top = (e.clientY+12)+'px';
+    tip.style.display = 'block';
+  });
+  svg.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+}
+
+function drawBarChart(svgId, items){
+  const svg = document.getElementById(svgId);
+  // O viewBox usa a largura real do container (nao um valor fixo) para que 1
+  // unidade == 1px real e a grossura da barra saia sempre igual em qualquer
+  // grafico, seja ele de largura total ou de meia largura (grelha de 2 colunas).
+  const W = svg.getBoundingClientRect().width || 540;
+  const padL=90, padR=50, padT=8, padB=8;
+  const rowH = BAR_PX + 9;
+  const barH = rowH-9, barR = barH/2;
+  const maxV = Math.max(...items.map(i=>i.value), 1) * 1.15;
+  const scale = (W-padL-padR)/maxV;
+  const svgH = items.length*rowH + padT + padB;
+  svg.setAttribute('viewBox', `0 0 ${W} ${svgH}`);
+  let out = '';
+  items.forEach((it,idx)=>{
+    const y = padT + idx*rowH;
+    const barW = Math.max(it.value*scale, 1);
+    out += `<text x="${padL-8}" y="${y+rowH/2+4}" text-anchor="end" class="bar-label">${it.label}</text>`;
+    out += `<rect class="bar-track" x="${padL}" y="${y+4}" width="${W-padL-padR}" height="${barH}" rx="${barR}"></rect>`;
+    out += `<rect class="bar" data-tip="${it.label}: ${it.text}" x="${padL}" y="${y+4}" width="${barW}" height="${barH}" rx="${barR}" fill="${it.color}" style="animation-delay:${idx*35}ms"></rect>`;
+    out += `<text x="${padL+barW+6}" y="${y+rowH/2+4}" class="bar-value">${it.text}</text>`;
+    if(it.mid!==undefined){
+      const midStr = String(it.mid);
+      const midSize = 9;
+      const neededW = midStr.length*6.5 + 6;
+      if(barW >= neededW){
+        out += `<text x="${padL+barW/2}" y="${y+rowH/2+3.2}" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="${midSize}" font-weight="600" fill="#fff" stroke="var(--ink)" stroke-width="2" paint-order="stroke" stroke-linejoin="round">${midStr}</text>`;
+      }
+    }
+    if(it.ref!==undefined){
+      const rx = padL + it.ref*scale;
+      out += `<line x1="${rx}" y1="${y+2}" x2="${rx}" y2="${y+rowH-2}" stroke="var(--bad)" stroke-width="2" stroke-dasharray="3 2"></line>`;
+    }
+  });
+  svg.innerHTML = out;
+  attachBarHover(svg);
+}
+const TOP_N = 6;
+function topN(list, keyFn, n){ return list.slice().sort((a,b)=>keyFn(b)-keyFn(a)).slice(0,n); }
+
+const efTop = topN(LINES, l=>l.ef_pct, TOP_N);
+drawBarChart('chart-ef', efTop.map(l=>({label:l.linha, value:l.ef, text:fmt(l.ef,2)+' mm', color: l.resultado==='Aprovado'?'var(--good)':'var(--bad)', ref:l.toll})));
+document.getElementById('chart-ef-note').textContent = LINES.length>TOP_N ? `A mostrar as ${TOP_N} linhas mais proximas da tolerancia, de ${LINES.length}. Tabela abaixo tem todas.` : '';
+
+const rendBottom = topN(LINES, l=>-l.rendimento, TOP_N);
+drawBarChart('chart-rend', rendBottom.map(l=>({label:l.linha, value:l.rendimento, text:fmt(l.rendimento,0)+' m/h', color:'var(--gray)'})));
+document.getElementById('chart-rend-note').textContent = LINES.length>TOP_N ? `A mostrar as ${TOP_N} linhas mais lentas, de ${LINES.length}. Tabela abaixo tem todas.` : '';
+
+function drawPairedBarChart(svgId, items, colorA, colorB){
+  const svg = document.getElementById(svgId);
+  const W = svg.getBoundingClientRect().width || 860;
+  const padL=90, padR=50, padT=10, padB=10;
+  const barH = BAR_PX, barR = barH/2; // mesma grossura (px reais) das barras de drawBarChart
+  const bandH = barH*2 + 9;
+  const trackW = W-padL-padR;
+  const maxV = Math.max(...items.map(i=>Math.max(i.avg,i.max)), 1) * 1.15;
+  const scale = trackW/maxV;
+  const svgH = items.length*bandH + padT + padB;
+  svg.setAttribute('viewBox', `0 0 ${W} ${svgH}`);
+  let out = '';
+  items.forEach((it,idx)=>{
+    const y = padT + idx*bandH;
+    out += `<text x="${padL-8}" y="${(y+bandH/2+4).toFixed(1)}" text-anchor="end" class="bar-label">${it.label}</text>`;
+    const wA = Math.max(it.avg*scale, 1);
+    out += `<rect class="bar-track" x="${padL}" y="${y.toFixed(1)}" width="${trackW}" height="${barH.toFixed(1)}" rx="${barR}"></rect>`;
+    out += `<rect class="bar" data-tip="${it.label} · medio: ${fmt(it.avg,2)} m" x="${padL}" y="${y.toFixed(1)}" width="${wA.toFixed(1)}" height="${barH.toFixed(1)}" rx="${barR}" fill="${colorA}" style="animation-delay:${idx*35}ms"></rect>`;
+    out += `<text x="${(padL+wA+6).toFixed(1)}" y="${(y+barH/2+3.5).toFixed(1)}" class="bar-value">${fmt(it.avg,2)} m</text>`;
+    const wB = Math.max(it.max*scale, 1);
+    const y2 = y+barH+3;
+    out += `<rect class="bar-track" x="${padL}" y="${y2.toFixed(1)}" width="${trackW}" height="${barH.toFixed(1)}" rx="${barR}"></rect>`;
+    out += `<rect class="bar" data-tip="${it.label} · maximo: ${fmt(it.max,2)} m" x="${padL}" y="${y2.toFixed(1)}" width="${wB.toFixed(1)}" height="${barH.toFixed(1)}" rx="${barR}" fill="${colorB}" style="animation-delay:${idx*35+18}ms"></rect>`;
+    out += `<text x="${(padL+wB+6).toFixed(1)}" y="${(y2+barH/2+3.5).toFixed(1)}" class="bar-value">${fmt(it.max,2)} m</text>`;
+  });
+  svg.innerHTML = out;
+  attachBarHover(svg);
+}
+
+function drawScatterChart(svgId, points, xLabel, yLabel){
+  const svg = document.getElementById(svgId);
+  const W=860,H=300, padL=60, padR=24, padT=16, padB=44;
+  const xs = points.map(p=>p.x), ys = points.map(p=>p.y);
+  const xDataMax = Math.max(...xs, 0), xDataMin = Math.min(...xs, 0);
+  const xPad = Math.max(xDataMax - xDataMin, 0.001) * 0.15;
+  const xMax = xDataMax + xPad, xMin = xDataMin - xPad;
+  const yMax = Math.max(...ys) * 1.15 || 1;
+  const sx = v => padL + ((v-xMin)/(xMax-xMin))*(W-padL-padR);
+  const sy = v => H-padB - (v/yMax)*(H-padT-padB);
+  let out = '';
+  for(let i=0;i<=4;i++){
+    const yv = yMax*i/4, y = sy(yv);
+    out += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="1"></line>`;
+    out += `<text x="${padL-8}" y="${(y+4).toFixed(1)}" text-anchor="end" class="bar-label">${fmt(yv,0)}</text>`;
+  }
+  for(let i=0;i<=4;i++){
+    const xv = xMin + (xMax-xMin)*i/4, x = sx(xv);
+    out += `<text x="${x.toFixed(1)}" y="${H-padB+18}" text-anchor="middle" class="bar-label">${fmt(xv,1)}</text>`;
+  }
+  if(xMin < 0 && xMax > 0){
+    const x0 = sx(0).toFixed(1);
+    out += `<line x1="${x0}" y1="${padT}" x2="${x0}" y2="${(H-padB).toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2"></line>`;
+  }
+  out += `<text x="${padL+(W-padL-padR)/2}" y="${H-6}" text-anchor="middle" class="bar-label">${xLabel}</text>`;
+  out += `<text x="14" y="${padT+(H-padT-padB)/2}" text-anchor="middle" class="bar-label" transform="rotate(-90 14 ${padT+(H-padT-padB)/2})">${yLabel}</text>`;
+  points.forEach(p=>{
+    const cx = sx(p.x).toFixed(1), cy = sy(p.y).toFixed(1);
+    out += `<circle cx="${cx}" cy="${cy}" r="6" fill="var(--gold-soft)" stroke="var(--gold-dark)" stroke-width="1.5"></circle>`;
+    out += `<text x="${cx}" y="${(sy(p.y)-10).toFixed(1)}" text-anchor="middle" class="bar-label">${p.label}</text>`;
+  });
+  svg.innerHTML = out;
+}
+drawScatterChart('chart-scatter', LINES.map(l=>({x:l.declive*100, y:l.rendimento, label:l.linha})), 'Declive (%)', 'Rendimento (m/h)');
+
+const deseqTop = topN(LINES, l=>l.dist_deseq_medio, TOP_N);
+drawPairedBarChart('chart-deseq', deseqTop.map(l=>({label:l.linha, avg:l.dist_deseq_medio, max:l.dist_deseq_max})), 'var(--gray)', 'var(--bad)');
+document.getElementById('chart-deseq-note').textContent = LINES.length>TOP_N ? `A mostrar as ${TOP_N} linhas com maior desequilibrio medio, de ${LINES.length}. Tabela abaixo tem todas.` : '';
+
+drawBarChart('chart-mira-hist', [
+  {label:'0 - 30 cm', value:MIRA_HIST.pct[0], text:fmt(MIRA_HIST.pct[0],1)+'%', color:'var(--bad)'},
+  {label:'30 - 270 cm', value:MIRA_HIST.pct[1], text:fmt(MIRA_HIST.pct[1],1)+'%', color:'var(--good)'},
+  {label:'270 - 300 cm', value:MIRA_HIST.pct[2], text:fmt(MIRA_HIST.pct[2],1)+'%', color:'var(--bad)'},
+]);
+const miraTop = topN(LINES, l=>l.pct_fora_mira, TOP_N);
+drawBarChart('chart-mira', miraTop.map(l=>({label:l.linha, value:l.pct_fora_mira*100, text:fmt(l.pct_fora_mira*100,1)+'%', mid:fmt(l.declive*100,1)+'%', color: l.pct_fora_mira>=0.15?'var(--bad)':'var(--gold-dark)'})));
+document.getElementById('chart-mira-note').textContent = LINES.length>TOP_N ? `A mostrar as ${TOP_N} linhas com mais leituras fora da zona segura, de ${LINES.length}. Tabela abaixo tem todas.` : '';
+
+const lineCols = [
+  {k:'linha', h:'Linha'}, {k:'estado', h:'Estado'},
+  {k:'ef', h:'EF (mm)', num:1, d:2}, {k:'toll', h:'Toll (mm)', num:1, d:2},
+  {k:'resultado', h:'Resultado'},
+  {k:'tol_tecnica', h:'Tol. tecnica (mm)', num:1, d:2}, {k:'resultado_tecnico', h:'Resultado tecnico'},
+  {k:'comprimento', h:'Comp. (m)', num:1, d:1}, {k:'comprimento_um_sentido', h:'Comp. 1 sentido (m)', num:1, d:1}, {k:'declive', h:'Declive (%)', num:1, d:1, pct:1},
+  {k:'estacoes', h:'Estacoes', num:1}, {k:'estacoes_km', h:'Estacoes/km', num:1, d:0}, {k:'duracao_h', h:'Duracao (h)', num:1, d:2},
+  {k:'rendimento', h:'Rend. (m/h)', num:1, d:0},
+  {k:'tempo_medio_min', h:'Tempo/estacao (min)', num:1, d:1},
+  {k:'taxa_rep', h:'Repeticao (%)', num:1, d:1, pct:1}, {k:'pontos_controlo', h:'Ctrl (C)', num:1},
+  {k:'dist_deseq_medio', h:'Desequil. medio (m)', num:1, d:2}, {k:'dist_deseq_max', h:'Desequil. max (m)', num:1, d:2},
+  {k:'pct_fora_mira', h:'% fora mira', num:1, d:1, pct:1},
+  {k:'inicio', h:'Inicio', dt:1}, {k:'fim', h:'Fim', dt:1},
+];
+const dayCols = [
+  {k:'data', h:'Data', dateOnly:1}, {k:'n_linhas', h:'Linhas', num:1}, {k:'estacoes', h:'Estacoes', num:1},
+  {k:'comprimento', h:'Dist(m)', num:1, d:1}, {k:'declive_medio', h:'Declive medio (m/km)', num:1, d:1},
+  {k:'estacoes_km', h:'Estacoes/km', num:1, d:0}, {k:'duracao_ativa', h:'Dur. ativa (h)', num:1, d:2},
+  {k:'rendimento', h:'Rend. (m/h)', num:1, d:0}, {k:'inicio', h:'Inicio', dt:1}, {k:'fim', h:'Fim', dt:1},
+  {k:'duracao_total', h:'No local (h)', num:1, d:2}, {k:'leituras', h:'Leituras', num:1},
+  {k:'invalidas', h:'Invalidas', num:1}, {k:'taxa_rep', h:'Repeticao (%)', num:1, d:1, pct:1},
+  {k:'ef_medio', h:'EF medio (mm)', num:1, d:2}, {k:'aprovadas', h:'Aprovadas', num:1}, {k:'reprovadas', h:'Reprovadas', num:1},
+];
+function cellHtml(col, row){
+  const v = row[col.k];
+  if(col.k==='resultado' || col.k==='resultado_tecnico') return badge(v);
+  if(col.k==='estado') return row.estado.startsWith('Conclu') ? row.estado : `<span class="badge live">${row.estado}</span>`;
+  if(col.dt) return fmtDT(v);
+  if(col.dateOnly) return fmtDate(v);
+  if(col.pct) return fmt(v*100, col.d)+'%';
+  if(col.num) return fmt(v, col.d!==undefined?col.d:0);
+  return v;
+}
+function buildTable(tableId, cols, data){
+  const table = document.getElementById(tableId);
+  table.querySelector('thead').innerHTML = '<tr>'+cols.map(c=>`<th>${c.h}</th>`).join('')+'</tr>';
+  table.querySelector('tbody').innerHTML = data.map(row=>{
+    const cls = (row.estado && !row.estado.startsWith('Conclu')) ? ' class="live"' : '';
+    return '<tr'+cls+'>'+cols.map(c=>`<td class="${(c.num||c.dt)?'num':''}">${cellHtml(c,row)}</td>`).join('')+'</tr>';
+  }).join('');
+}
+buildTable('table-linhas', lineCols, LINES);
+buildTable('table-dias', dayCols, DAYS.slice().reverse());   // dias mais recentes primeiro (os graficos mantem a ordem cronologica)
+
+function drawProfileChart(points){
+  const svg = document.getElementById('chart-profile');
+  const W=900,H=260, padL=55, padR=20, padT=16, padB=30;
+  const xs = points.map(p=>p.x), ys = points.map(p=>p.y);
+  const xMax = Math.max(...xs, 1), yMin = Math.min(...ys), yMax = Math.max(...ys);
+  const yPad = Math.max((yMax-yMin)*0.12, 0.5);
+  const y0 = yMin - yPad, y1 = yMax + yPad;
+  const sx = v => padL + (v/xMax)*(W-padL-padR);
+  const sy = v => H-padB - ((v-y0)/(y1-y0))*(H-padT-padB);
+
+  const line = points.map((p,i)=> (i===0?'M':'L')+sx(p.x).toFixed(1)+','+sy(p.y).toFixed(1)).join(' ');
+  const area = line + ` L${sx(points[points.length-1].x).toFixed(1)},${(H-padB).toFixed(1)} L${sx(0).toFixed(1)},${(H-padB).toFixed(1)} Z`;
+
+  let gridHtml = '';
+  for(let i=0;i<=4;i++){
+    const v = y0 + (y1-y0)*i/4;
+    const y = sy(v);
+    gridHtml += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="1"></line>`;
+    gridHtml += `<text x="${padL-8}" y="${(y+4).toFixed(1)}" text-anchor="end" class="bar-label">${fmt(v,1)}</text>`;
+  }
+  for(let i=0;i<=6;i++){
+    const v = xMax*i/6;
+    const x = sx(v);
+    gridHtml += `<text x="${x.toFixed(1)}" y="${H-padB+18}" text-anchor="middle" class="bar-label">${fmt(v,0)} m</text>`;
+  }
+
+  let pointsHtml = '';
+  points.forEach((p,i)=>{
+    const cx = sx(p.x).toFixed(1), cy = sy(p.y).toFixed(1);
+    const dotColor = i===0 ? 'var(--gray)' : (i===points.length-1 ? 'var(--gold-dark)' : 'var(--gold-dark)');
+    const r = (i===0||i===points.length-1) ? 4 : 2.5;
+    pointsHtml += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${dotColor}" class="profile-pt" data-name="${p.point}" data-x="${fmt(p.x,0)}" data-y="${fmt(p.y,3)}"></circle>`;
+    pointsHtml += `<circle cx="${cx}" cy="${cy}" r="9" fill="transparent" class="profile-pt" data-name="${p.point}" data-x="${fmt(p.x,0)}" data-y="${fmt(p.y,3)}"></circle>`;
+  });
+
+  svg.innerHTML = gridHtml
+    + `<path d="${area}" fill="var(--gold-soft)" stroke="none"></path>`
+    + `<path d="${line}" fill="none" stroke="var(--gold-dark)" stroke-width="2"></path>`
+    + pointsHtml;
+}
+
+(function initProfileHover(){
+  const svg = document.getElementById('chart-profile');
+  const tooltip = document.getElementById('profile-tooltip');
+  svg.addEventListener('mousemove', (e)=>{
+    const t = e.target;
+    if(!t.classList || !t.classList.contains('profile-pt')){ tooltip.style.display='none'; return; }
+    const svgRect = svg.getBoundingClientRect();
+    const px = parseFloat(t.getAttribute('cx'))*(svgRect.width/900);
+    const py = parseFloat(t.getAttribute('cy'))*(svgRect.height/260);
+    tooltip.style.left = px+'px';
+    tooltip.style.top = py+'px';
+    tooltip.textContent = `${t.dataset.name} — ${t.dataset.x} m, ${t.dataset.y} m`;
+    tooltip.style.display = 'block';
+  });
+  svg.addEventListener('mouseleave', ()=>{ tooltip.style.display='none'; });
+})();
+
+function renderProfile(lineName){
+  const pts = PROFILES[lineName] || [];
+  const stats = document.getElementById('profile-stats');
+  if(pts.length < 2){
+    stats.innerHTML = '<span style="color:var(--ink-soft); font-size:13px;">Sem dados suficientes para esta linha ainda.</span>';
+    document.getElementById('chart-profile').innerHTML = '';
+    return;
+  }
+  const dist = pts[pts.length-1].x;
+  const dh = pts[pts.length-1].y - pts[0].y;
+  const mk = (label,val)=>`<div><div style="font-size:11px; text-transform:uppercase; color:var(--ink-soft); font-weight:600;">${label}</div><div class="mono" style="font-size:16px;">${val}</div></div>`;
+  stats.innerHTML = mk('Distancia', fmt(dist,0)+' m') + mk('Cota inicial', fmt(pts[0].y,3)+' m')
+    + mk('Cota final', fmt(pts[pts.length-1].y,3)+' m') + mk('Desnivel', (dh>=0?'+':'')+fmt(dh,3)+' m');
+  drawProfileChart(pts);
+}
+
+function renderLineCard(lineName){
+  const l = LINES.find(x=>x.linha===lineName);
+  const grid = document.getElementById('line-card-grid');
+  if(!l){ grid.innerHTML = ''; return; }
+  const mk = (label,val,color)=>`<div style="background:var(--paper); border-radius:8px; padding:9px 12px;"><div style="font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); font-weight:600;">${label}</div><div class="mono" style="font-size:16px; font-weight:600; ${color?`color:${color};`:''}">${val}</div></div>`;
+  grid.innerHTML =
+    mk('Estado', l.estado.startsWith('Conclu')?l.estado:`<span class="badge live">${l.estado}</span>`) +
+    mk('Comprimento (so nivelamento)', fmt(l.comprimento_galileo_main,1)+' m') +
+    mk('EF / Toll (mm)', fmt(l.ef,2)+' / '+fmt(l.toll,2)) +
+    mk('Resultado', badge(l.resultado)) +
+    mk('Tol. tecnica (mm)', fmt(l.tol_tecnica,2)) +
+    mk('Resultado tecnico', badge(l.resultado_tecnico)) +
+    mk('Rendimento', fmt(l.rendimento,0)+' m/h') +
+    mk('Tempo/estacao', fmt(l.tempo_medio_min,1)+' min') +
+    mk('Taxa repeticao', fmt(l.taxa_rep*100,1)+'%') +
+    mk('Desequilibrio medio', fmt(l.dist_deseq_medio,2)+' m') +
+    mk('Desequilibrio max', fmt(l.dist_deseq_max,2)+' m') +
+    mk('% fora da zona segura (mira)', fmt(l.pct_fora_mira*100,1)+'%', l.pct_fora_mira>=0.15?'var(--bad)':'') +
+    mk('Declive', fmt(l.declive*100,1)+'%') +
+    mk('Estacoes/km', fmt(l.estacoes_km,0)) +
+    mk('Estacoes', l.estacoes);
+}
+
+const RAW_COLS = ['N','Re','Dist Re (m)','Leitura Re (m)','Cota Re (m)','Vante','Dist Vante (m)','Leitura Vante (m)','Cota Vante (m)','DH (m)','Delta (mm)','Tipo','Ramo','Valido','Hora'];
+function renderRawData(lineName){
+  const rows = RAW[lineName] || [];
+  document.getElementById('raw-head').innerHTML = RAW_COLS.map(h=>`<th style="position:sticky; top:0; background:var(--surface); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); white-space:nowrap;">${h}</th>`).join('');
+  document.getElementById('raw-body').innerHTML = rows.map(r=>`<tr>${r.map(v=>`<td class="mono" style="padding:5px 10px; border-bottom:1px solid var(--line); white-space:nowrap;">${v===null?'-':v}</td>`).join('')}</tr>`).join('');
+}
+document.getElementById('raw-toggle').addEventListener('click', () => {
+  const wrap = document.getElementById('raw-data-wrap');
+  const open = wrap.style.display !== 'none';
+  wrap.style.display = open ? 'none' : 'block';
+  document.getElementById('raw-toggle').innerHTML = open ? 'Ver dados brutos &#9662;' : 'Esconder dados brutos &#9652;';
+});
+
+(function initProfileTab(){
+  const select = document.getElementById('profile-select');
+  select.innerHTML = LINES.map(l=>`<option value="${l.linha}">${l.linha}</option>`).join('');
+  select.addEventListener('change', ()=> { renderProfile(select.value); renderLineCard(select.value); renderRawData(select.value); });
+  // #LinhaNN no endereco (ex: link do mapa) abre logo o resumo dessa linha.
+  const wanted = decodeURIComponent(location.hash.slice(1));
+  const first = LINES.some(l=>l.linha===wanted) ? wanted : (LINES.length ? LINES[0].linha : null);
+  if(first){
+    select.value = first; renderProfile(first); renderLineCard(first); renderRawData(first);
+    if(first === wanted) setTimeout(()=> select.scrollIntoView({behavior:'smooth', block:'center'}), 300);
+  }
+})();
+
+// Aviso de dados desatualizados: compara a hora de geracao (embebida na pagina) com
+// a hora atual no navegador. Se a atualizacao automatica parar, quem abre o site ve o aviso.
+(function staleWatch(){
+  const STALE_MIN = 30;
+  const el = document.getElementById('updated'), age = document.getElementById('updated-age'), banner = document.getElementById('stale-banner');
+  const t0 = Date.parse(el.dataset.iso);
+  if(isNaN(t0)) return;
+  const human = min => min < 60 ? `${min} min` : (min < 2880 ? `${Math.floor(min/60)} h` : `${Math.floor(min/1440)} dias`);
+  function tick(){
+    const min = Math.max(0, Math.round((Date.now()-t0)/60000));
+    age.textContent = `(h\u00e1 ${human(min)})`;
+    const stale = min > STALE_MIN;
+    el.classList.toggle('stale', stale);
+    banner.hidden = !stale;
+    if(stale) banner.textContent = `Dados desatualizados: a \u00faltima atualiza\u00e7\u00e3o foi h\u00e1 ${human(min)}. A atualiza\u00e7\u00e3o autom\u00e1tica pode ter parado.`;
+  }
+  tick(); setInterval(tick, 30000);
+})();
+
+</script>
 <script src="fullscreen.js"></script>
 </body>
 </html>

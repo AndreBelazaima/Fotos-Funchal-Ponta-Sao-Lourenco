@@ -1,2 +1,2 @@
 // Gerado automaticamente por mapa_linhas.py - nao editar.
-window.LINHAS_MAPA = {"gerado":"2026-10-14T13:47:47+01:00","tracado_m":26817.4,"linhas":[]};
+window.LINHAS_MAPA = {"gerado":"2026-10-14T13:55:50+01:00","tracado_m":26817.4,"linhas":[{"linha":"Linha200","estado":"Concluida","concluida":true,"aprov_galileo":true,"aprov_tec":true,"ef":0.0,"toll":0.3,"tol_tecnica":0.214,"comp_niv":20.4,"comp_total":40.8,"rendimento":0,"estacoes":0,"inicio":null,"fim":null,"a":0.0,"b":20.4,"aprox":true}]};
