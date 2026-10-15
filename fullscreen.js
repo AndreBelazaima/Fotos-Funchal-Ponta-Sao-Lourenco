@@ -1,4 +1,5 @@
 // Botoes da barra do topo (mapa e paginas de progresso):
+//  - Tema claro/escuro (a escolha fica guardada no aparelho);
 //  - "Ecrã inteiro" (Fullscreen API; nos browsers sem ela, ex: iPhone, nao aparece);
 //  - "Tamanho" (A+): aumenta os textos e controlos para ecras grandes/TV (100% a 175%).
 //    Numa Smart TV (Samsung/Tizen, LG, etc.) arranca automaticamente a 150%.
@@ -44,6 +45,28 @@
     'background:var(--surface,#fff); border:1px solid var(--line-strong,#D6D0C2); border-radius:8px; color:var(--ink,#22252A); cursor:pointer; padding:0 8px; font:600 12px/1 inherit;}' +
     '.tb-btn:hover,.tb-btn:focus-visible{border-color:var(--gold,#D9A115); outline:none;} .tb-btn svg{width:18px; height:18px;}';
   d.head.appendChild(btnCss);
+  // ---------- Tema claro / escuro ----------
+  var tm = d.createElement('button');
+  tm.type = 'button'; tm.className = 'tb-btn';
+  var ICON_ATTRS = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+  var MOON = '<svg ' + ICON_ATTRS + '><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+  var SUN = '<svg ' + ICON_ATTRS + '><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+  function isDark() { return el.getAttribute('data-theme') === 'dark'; }
+  function themeLabel() {
+    tm.innerHTML = isDark() ? SUN : MOON;
+    tm.title = isDark() ? 'Mudar para tema claro' : 'Mudar para tema escuro';
+    tm.setAttribute('aria-label', tm.title);
+  }
+  themeLabel();
+  tm.addEventListener('click', function () {
+    var dark = !isDark();
+    if (dark) el.setAttribute('data-theme', 'dark'); else el.removeAttribute('data-theme');
+    try { localStorage.setItem('tema', dark ? 'dark' : 'light'); } catch (e) {}
+    themeLabel();
+    window.dispatchEvent(new Event('themechange'));
+  });
+  bar.appendChild(tm);
+
   var sz = d.createElement('button');
   sz.type = 'button'; sz.className = 'tb-btn';
   function szLabel() { sz.innerHTML = 'A+ <span style="margin-left:4px;font-weight:500;opacity:.7">' + Math.round(level * 100) + '%</span>'; sz.title = 'Tamanho do texto e dos controlos (para TV)'; sz.setAttribute('aria-label', sz.title); }

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>try{ if(localStorage.getItem("tema")==="dark") document.documentElement.setAttribute("data-theme","dark"); }catch(e){}</script>
 <meta name="theme-color" content="#D9A115">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.webmanifest">
@@ -29,6 +30,9 @@
     --line:#E6E1D6;
     --line-strong:#D6D0C2;
     --shadow:0 6px 24px rgba(34,37,42,.12);
+    --on-ink:#fff;
+    --glass:rgba(255,255,255,.92);
+    --gold-tint:#FBF1DA;
 
     --cat-estaca:#D9A115;
     --cat-test:#3B7A8C;
@@ -126,7 +130,7 @@
     flex:1; padding:7px 8px; border-radius:8px; border:1px solid var(--line-strong);
     background:var(--paper); font-family:inherit; font-size:12px; font-weight:500; color:var(--ink-soft); cursor:pointer;
   }
-  .view-toggle button.active{background:var(--ink); border-color:var(--ink); color:#fff;}
+  .view-toggle button.active{background:var(--ink); border-color:var(--ink); color:var(--on-ink);}
 
   .legend-title{font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px;}
   .cat-list{display:flex; flex-direction:column; gap:4px;}
@@ -153,7 +157,7 @@
     border:1px solid transparent;
   }
   .point-item:hover{background:var(--paper); border-color:var(--line);}
-  .point-item.selected{background:#FBF1DA; border-color:var(--gold);}
+  .point-item.selected{background:var(--gold-tint); border-color:var(--gold);}
   .point-item .dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto; background:var(--c);}
   .point-item .thumb{
     width:34px; height:34px; border-radius:7px; object-fit:cover; flex:0 0 auto; background:var(--paper); border:1px solid var(--line);
@@ -184,7 +188,7 @@
     border:none; background:transparent; padding:7px 13px; border-radius:8px; font-family:inherit;
     font-size:12.5px; font-weight:500; color:var(--ink-soft); cursor:pointer; display:flex; align-items:center; gap:6px;
   }
-  .basemap-switch button.active{background:var(--ink); color:#fff;}
+  .basemap-switch button.active{background:var(--ink); color:var(--on-ink);}
   .basemap-switch button svg{width:14px; height:14px;}
 
   .map-toggles{
@@ -245,7 +249,7 @@
   }
   .measure-btn svg{width:14px; height:14px; stroke:currentColor; flex:0 0 auto;}
   .measure-btn:hover{background:var(--paper);}
-  .measure-btn.active{background:var(--ink); color:#fff;}
+  .measure-btn.active{background:var(--ink); color:var(--on-ink);}
   .leaflet-container.measuring{cursor:crosshair;}
   .leaflet-container.measuring .leaflet-interactive{cursor:crosshair;}
   .measure-panel{
@@ -274,13 +278,13 @@
   }
   .pp-controls button:hover:not(:disabled){border-color:var(--gold);}
   .pp-controls button:disabled{opacity:.5; cursor:default;}
-  .pp-controls button.playing{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .pp-controls button.playing{background:var(--ink); color:var(--on-ink); border-color:var(--ink);}
   .pp-controls select{
     flex:1; padding:7px 6px; border-radius:8px; border:1px solid var(--line-strong); background:var(--paper);
     font-family:inherit; font-size:12px; color:var(--ink); cursor:pointer;
   }
   .pp-tip{
-    background:rgba(255,255,255,.95); border:1px solid var(--line-strong); border-radius:6px; padding:2px 7px;
+    background:var(--glass); border:1px solid var(--line-strong); border-radius:6px; padding:2px 7px;
     font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:700; color:var(--gold-dark);
     box-shadow:0 1px 4px rgba(34,37,42,.25); white-space:nowrap; pointer-events:none;
   }
@@ -314,14 +318,14 @@
   .mp-actions button:hover:not(:disabled){border-color:var(--gold);}
   .mp-actions button:disabled{opacity:.45; cursor:default;}
   .msr-pin{
-    width:24px; height:24px; border-radius:50%; background:var(--ink); color:#fff; border:2px solid #fff;
+    width:24px; height:24px; border-radius:50%; background:var(--ink); color:var(--on-ink); border:2px solid var(--surface);
     box-shadow:0 1px 5px rgba(0,0,0,.5); font:700 11px 'IBM Plex Mono',monospace;
     display:flex; align-items:center; justify-content:center;
   }
   .msr-pin.first{background:var(--gold-dark);}
   .msr-ghost{width:14px; height:14px; border-radius:50%; background:#fff; border:3px solid #1971C2; box-shadow:0 1px 4px rgba(0,0,0,.5);}
   .msr-tip{
-    background:rgba(255,255,255,.95); border:1px solid var(--line-strong); border-radius:6px; padding:2px 7px;
+    background:var(--glass); border:1px solid var(--line-strong); border-radius:6px; padding:2px 7px;
     font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:700; color:var(--ink);
     box-shadow:0 1px 4px rgba(34,37,42,.25); white-space:nowrap; pointer-events:none;
   }
@@ -425,7 +429,7 @@
   .profile-chart .pf-pt.selected{stroke:var(--ink); stroke-width:2;}
   .pf-tooltip{
     position:absolute; display:none; pointer-events:none; z-index:20;
-    background:var(--ink); color:#fff; font-family:'IBM Plex Mono',monospace; font-size:11.5px;
+    background:var(--ink); color:var(--on-ink); font-family:'IBM Plex Mono',monospace; font-size:11.5px;
     padding:4px 8px; border-radius:6px; white-space:nowrap; transform:translate(-50%,-125%);
   }
   .profile-chart .pf-guide{stroke:var(--ink-soft); stroke-width:1; stroke-dasharray:2,3;}
@@ -437,7 +441,7 @@
 
   /* ---------- Leaflet overrides ---------- */
   .pt-label{
-    background:rgba(255,255,255,.92); border:1px solid var(--line-strong); border-radius:5px;
+    background:var(--glass); border:1px solid var(--line-strong); border-radius:5px;
     padding:1px 6px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:700;
     color:var(--ink); box-shadow:0 1px 3px rgba(34,37,42,.18); pointer-events:none;
     white-space:nowrap;
@@ -506,7 +510,7 @@
   .lightbox-imgwrap img{display:block; width:100%; height:300px; object-fit:cover;}
   .lightbox-nav{
     position:absolute; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:50%;
-    background:rgba(255,255,255,.9); border:none; display:flex; align-items:center; justify-content:center;
+    background:var(--glass); border:none; display:flex; align-items:center; justify-content:center;
     cursor:pointer; color:var(--ink);
   }
   .lightbox-nav:hover{background:#fff;}
@@ -514,7 +518,7 @@
   .lightbox-prev{left:12px;} .lightbox-next{right:12px;}
   .lightbox-close{
     position:absolute; top:10px; right:10px; width:30px; height:30px; border-radius:50%;
-    background:rgba(255,255,255,.9); border:none; cursor:pointer; color:var(--ink);
+    background:var(--glass); border:none; cursor:pointer; color:var(--ink);
     display:flex; align-items:center; justify-content:center;
   }
   .lightbox-close:hover{background:#fff;}
@@ -534,11 +538,11 @@
   .lightbox-data .lbl{font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); font-weight:600;}
   .lightbox-data .val{font-family:'IBM Plex Mono',monospace; font-size:13px; margin-top:2px;}
 
-  .leaflet-control-attribution{font-size:10px !important; background:rgba(255,255,255,.85) !important;}
+  .leaflet-control-attribution{font-size:10px !important; background:var(--glass) !important;}
   .leaflet-control-zoom{border:none !important; box-shadow:var(--shadow) !important; margin-top:12px !important; margin-left:12px !important;}
   .leaflet-control-zoom a{border-radius:0 !important; color:var(--ink) !important;}
   .leaflet-touch .leaflet-control-zoom{border-radius:10px !important; overflow:hidden;}
-  .leaflet-control-scale-line{background:rgba(255,255,255,.85) !important; font-family:'IBM Plex Mono',monospace !important;}
+  .leaflet-control-scale-line{background:var(--glass) !important; font-family:'IBM Plex Mono',monospace !important;}
 
   /* ---------- Marker divicon ---------- */
   .pt-marker{border-radius:50%; display:flex; align-items:center; justify-content:center;}
@@ -563,6 +567,29 @@
   @media (prefers-reduced-motion:reduce){
     .sidebar{transition:none;}
   }
+  /* ---------- Tema escuro (botao na barra do topo; escolha guardada no aparelho) ---------- */
+  html[data-theme="dark"]{
+    color-scheme:dark;
+    --ink:#ECE8DF; --ink-soft:#A9A59B; --paper:#16171A; --surface:#212327;
+    --line:#34363B; --line-strong:#464952;
+    --shadow:0 6px 24px rgba(0,0,0,.55);
+    --gold-dark:#E4B53E; --on-ink:#16171A;
+    --glass:rgba(33,35,39,.92); --gold-tint:#3A3220;
+  }
+  html[data-theme="dark"] .leaflet-popup-content-wrapper,
+  html[data-theme="dark"] .leaflet-popup-tip{background:var(--surface); color:var(--ink);}
+  html[data-theme="dark"] .leaflet-container a.leaflet-popup-close-button{color:var(--ink-soft);}
+  html[data-theme="dark"] .leaflet-bar a{background:var(--surface); color:var(--ink) !important; border-bottom-color:var(--line);}
+  html[data-theme="dark"] .leaflet-bar a:hover{background:var(--paper);}
+  html[data-theme="dark"] .leaflet-control-attribution,
+  html[data-theme="dark"] .leaflet-control-attribution a{color:var(--ink-soft) !important;}
+  html[data-theme="dark"] .leaflet-control-scale-line{color:var(--ink); border-color:var(--ink-soft);}
+  html[data-theme="dark"] .leaflet-tooltip{background:var(--surface); color:var(--ink); border-color:var(--line-strong);}
+  html[data-theme="dark"] .leaflet-tooltip-right:before, html[data-theme="dark"] .leaflet-tooltip-left:before{border-right-color:var(--line-strong); border-left-color:var(--line-strong);}
+  html[data-theme="dark"] .msr-ghost{background:var(--surface);}
+  html[data-theme="dark"] .basemap-switch button:not(.active){color:var(--ink-soft);}
+  html[data-theme="dark"] .lightbox-modal{background:var(--surface);}
+  html[data-theme="dark"] .ls15-label{color:#fff;}
 </style>
 </head>
 <body>
