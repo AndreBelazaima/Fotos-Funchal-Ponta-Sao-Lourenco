@@ -1,8 +1,7 @@
 // Botoes da barra do topo (mapa e paginas de progresso):
 //  - Tema claro/escuro (a escolha fica guardada no aparelho);
 //  - "Ecrã inteiro" (Fullscreen API; nos browsers sem ela, ex: iPhone, nao aparece);
-//  - "Tamanho" (A+): aumenta os textos e controlos para ecras grandes/TV (100% a 175%).
-//    Numa Smart TV (Samsung/Tizen, LG, etc.) arranca automaticamente a 150%.
+//  - "Tamanho" (A-): reduz os textos e controlos (100%, 90%, 80%, 70%); volta a 100% no fim do ciclo.
 (function () {
   var d = document, el = d.documentElement;
 
@@ -40,12 +39,11 @@
   var isApp = window.matchMedia && (matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches);
 
   // ---------- Tamanho da interface ----------
-  var LEVELS = [1, 1.25, 1.5, 1.75];
+  var LEVELS = [1, 0.9, 0.8, 0.7];
   var KEY = 'ui-escala';
-  var isTV = /SMART-?TV|Tizen|Web0S|NetCast|HbbTV|TV Safari/i.test(navigator.userAgent);
   function loadLevel() {
     try { var v = parseFloat(localStorage.getItem(KEY)); if (LEVELS.indexOf(v) >= 0) return v; } catch (e) {}
-    return isTV ? 1.5 : 1;
+    return 1;
   }
   var level = loadLevel();
   var uiCss = d.createElement('style');
@@ -99,7 +97,7 @@
 
   var sz = d.createElement('button');
   sz.type = 'button'; sz.className = 'tb-btn';
-  function szLabel() { sz.innerHTML = 'A+ <span style="margin-left:4px;font-weight:500;opacity:.7">' + Math.round(level * 100) + '%</span>'; sz.title = 'Tamanho do texto e dos controlos (para TV)'; sz.setAttribute('aria-label', sz.title); }
+  function szLabel() { sz.innerHTML = 'A− <span style="margin-left:4px;font-weight:500;opacity:.7">' + Math.round(level * 100) + '%</span>'; sz.title = 'Reduzir o tamanho do texto e dos controlos'; sz.setAttribute('aria-label', sz.title); }
   szLabel();
   sz.addEventListener('click', function () {
     level = LEVELS[(LEVELS.indexOf(level) + 1) % LEVELS.length];
