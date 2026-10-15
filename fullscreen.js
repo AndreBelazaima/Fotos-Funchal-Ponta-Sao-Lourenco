@@ -5,6 +5,36 @@
 //    Numa Smart TV (Samsung/Tizen, LG, etc.) arranca automaticamente a 150%.
 (function () {
   var d = document, el = d.documentElement;
+
+  // ---------- Altura real do ecra ----------
+  // Em algumas TVs/browsers 100vh e maior do que a area visivel (sobretudo em ecra inteiro) e o
+  // fundo da pagina (perfil longitudinal) fica cortado. Usa-se window.innerHeight, sempre atualizado.
+  function fitHeight() {
+    var h = window.innerHeight;
+    if (h > 0) el.style.setProperty('--app-h', h + 'px');
+    if (window.map && map.invalidateSize) map.invalidateSize();
+  }
+  fitHeight();
+  ['resize', 'orientationchange', 'fullscreenchange', 'webkitfullscreenchange'].forEach(function (ev) {
+    window.addEventListener(ev, function () { fitHeight(); setTimeout(fitHeight, 250); setTimeout(fitHeight, 1000); });
+    d.addEventListener(ev, function () { fitHeight(); setTimeout(fitHeight, 250); setTimeout(fitHeight, 1000); });
+  });
+
+  // ---------- Diagnostico (?diag=1): mostra as medidas reais do ecra, para afinar o layout numa TV ----------
+  if (/[?&]diag=1/.test(location.search)) {
+    var box = d.createElement('div');
+    box.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99999;background:rgba(0,0,0,.82);color:#0f0;font:12px/1.35 monospace;padding:8px 10px;border-radius:6px;max-width:94vw;white-space:pre-wrap;pointer-events:none;';
+    d.body.appendChild(box);
+    var upd = function () {
+      var pp = d.getElementById('profilePanel'), r = pp ? pp.getBoundingClientRect() : null;
+      box.textContent = 'inner ' + innerWidth + 'x' + innerHeight + ' | outer ' + outerWidth + 'x' + outerHeight + ' | screen ' + screen.width + 'x' + screen.height +
+        ' | dpr ' + devicePixelRatio + ' | vh100 ' + (function () { var e = d.createElement('div'); e.style.cssText = 'position:fixed;top:0;height:100vh'; d.body.appendChild(e); var v = e.offsetHeight; e.remove(); return v; })() +
+        '\nprofile ' + (r ? Math.round(r.top) + '..' + Math.round(r.bottom) : '-') + ' | app-h ' + el.style.getPropertyValue('--app-h') +
+        '\nfs ' + !!(d.fullscreenElement || d.webkitFullscreenElement) + ' | ui ' + (el.style.getPropertyValue('--ui') || 1) + '\n' + navigator.userAgent;
+    };
+    upd(); setInterval(upd, 1000);
+  }
+
   var bar = d.querySelector('.topbar');
   if (!bar) return;
   var isApp = window.matchMedia && (matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches);
