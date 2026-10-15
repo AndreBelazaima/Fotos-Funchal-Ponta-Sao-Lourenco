@@ -192,11 +192,23 @@
   .basemap-switch button.active{background:var(--ink); color:var(--on-ink);}
   .basemap-switch button svg{width:14px; height:14px;}
 
-  .map-toggles{
-    position:absolute; top:60px; right:12px; z-index:1000;
-    background:var(--surface); border-radius:10px; box-shadow:var(--shadow); border:1px solid var(--line);
-    padding:5px; display:flex; flex-direction:column;
+  .layers-btn{
+    position:absolute; top:60px; right:12px; z-index:1001;
+    display:flex; align-items:center; gap:7px; padding:7px 11px; border-radius:10px; cursor:pointer;
+    background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow);
+    font-family:inherit; font-size:12.5px; font-weight:600; color:var(--ink);
   }
+  .layers-btn:hover{border-color:var(--gold);}
+  .layers-btn svg{width:15px; height:15px;}
+  .layers-btn .chev{width:11px; height:11px; transition:transform .18s ease;}
+  .layers-btn[aria-expanded="true"]{background:var(--ink); color:var(--on-ink); border-color:var(--ink);}
+  .layers-btn[aria-expanded="true"] .chev{transform:rotate(180deg);}
+  .map-toggles{
+    position:absolute; top:104px; right:12px; z-index:1000;
+    background:var(--surface); border-radius:10px; box-shadow:var(--shadow); border:1px solid var(--line);
+    padding:5px; display:none; flex-direction:column;
+  }
+  .map-toggles.open{display:flex;}
   .map-toggles label{
     padding:5px 8px; font-size:11.5px; display:flex; align-items:center; gap:7px; cursor:pointer; color:var(--ink-soft); border-radius:6px;
   }
@@ -683,7 +695,12 @@
         </button>
       </div>
 
-      <div class="map-toggles">
+      <button type="button" class="layers-btn" id="layersBtn" aria-expanded="false" aria-controls="layersPanel" title="Mostrar/esconder o traçado, os nomes, a localização da equipa e outras opções">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        Camadas
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="map-toggles" id="layersPanel">
         <label>
           <input type="checkbox" id="routeToggle" checked>
           Traçado do nivelamento
@@ -897,6 +914,19 @@ ROUTE.forEach(seg => {
   L.polyline(seg, { color:'#E03131', weight:5, opacity:.85, dashArray:'1,7', lineCap:'round' }).addTo(routeLayer);
 });
 routeLayer.addTo(map);
+
+(function layersMenu(){
+  const btn = document.getElementById('layersBtn'), panel = document.getElementById('layersPanel');
+  function set(open){
+    panel.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    try { localStorage.setItem('camadas', open ? '1' : '0'); } catch(e) {}
+  }
+  let saved = null;
+  try { saved = localStorage.getItem('camadas'); } catch(e) {}
+  set(saved === '1');   // por omissao fechado: o mapa fica limpo
+  btn.addEventListener('click', () => set(!panel.classList.contains('open')));
+})();
 
 document.getElementById('routeToggle').addEventListener('change', e => {
   if(e.target.checked) routeLayer.addTo(map); else map.removeLayer(routeLayer);
