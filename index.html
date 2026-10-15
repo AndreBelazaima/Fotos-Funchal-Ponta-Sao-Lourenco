@@ -2215,17 +2215,29 @@ const ProgressPlayer = (function(){
     if(!lm || !lm.linhas) return null;
     const items = lm.linhas
       .filter(l => l.fim && l.b > l.a)
-      .map(l => ({ t: new Date(l.fim), b: l.b }))
+      .map(l => ({ t: new Date(l.fim), a: l.a, b: l.b }))
       .sort((a, b) => a.t - b.t);
     if(!items.length) return null;
-    let frontier = 0;
+    // Troços ja nivelados ate ao fim de cada dia (a uniao dos troços das linhas ate la): o
+    // trabalho pode ter varias frentes em simultaneo (ex: Ribeira Brava), por isso nao e so "ate onde chegou".
+    const done = [];
     const byDay = new Map();
     items.forEach(it => {
-      frontier = Math.max(frontier, it.b);
+      done.push([it.a, it.b]);
       const key = it.t.toISOString().slice(0, 10);
-      byDay.set(key, { key, t: it.t, frontier });
+      const ivs = mergeIntervals(done);
+      byDay.set(key, { key, t: it.t, ivs, doneM: ivs.reduce((s, iv) => s + (iv[1] - iv[0]), 0), tipA: it.a, tipB: it.b });
     });
     return Array.from(byDay.values()).sort((a, b) => a.t - b.t);
+  }
+  function mergeIntervals(list){
+    const s = list.map(x => [x[0], x[1]]).sort((p, q) => p[0] - q[0]);
+    const out = [];
+    s.forEach(iv => {
+      const last = out[out.length - 1];
+      if(last && iv[0] <= last[1] + 1) last[1] = Math.max(last[1], iv[1]); else out.push(iv);
+    });
+    return out;
   }
   function fmtDate(d){ return d.toLocaleDateString('pt-PT', { day:'2-digit', month:'2-digit', year:'numeric' }); }
   function fmtKm(m){ return (m / 1000).toFixed(2).replace('.', ',') + ' km'; }
@@ -2246,12 +2258,16 @@ const ProgressPlayer = (function(){
     slider.value = idx;
     const day = days[idx];
     dateEl.textContent = fmtDate(day.t);
-    kmEl.innerHTML = `<b>${fmtKm(day.frontier)}</b> de ${fmtKm(totalM)} nivelados`;
+    kmEl.innerHTML = `<b>${fmtKm(day.doneM)}</b> de ${fmtKm(totalM)} nivelados`;
     layer.clearLayers();
-    const seg = Linhas.sliceMain(0, day.frontier);
+    day.ivs.forEach(iv => {
+      const s = Linhas.sliceMain(iv[0], iv[1]);
+      if(!s) return;
+      L.polyline(s, { color:'#fff', weight:11, opacity:.9, lineCap:'round', lineJoin:'round', interactive:false }).addTo(layer);
+      L.polyline(s, { color:'var(--gold-dark)', weight:7, opacity:.95, lineCap:'round', lineJoin:'round', interactive:false }).addTo(layer);
+    });
+    const seg = Linhas.sliceMain(day.tipA, day.tipB);
     if(!seg) return;
-    L.polyline(seg, { color:'#fff', weight:11, opacity:.9, lineCap:'round', lineJoin:'round', interactive:false }).addTo(layer);
-    L.polyline(seg, { color:'var(--gold-dark)', weight:7, opacity:.95, lineCap:'round', lineJoin:'round', interactive:false }).addTo(layer);
     const tipPos = seg[seg.length - 1];
     if(!tip){
       tip = L.marker(tipPos, { icon: L.divIcon({ className:'', html:'<div class="msr-ghost" style="border-color:var(--gold-dark)"></div>', iconSize:[14,14], iconAnchor:[7,7] }), interactive:false, keyboard:false, zIndexOffset:1800 });
