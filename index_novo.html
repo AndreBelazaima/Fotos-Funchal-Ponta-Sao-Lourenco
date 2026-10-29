@@ -1,0 +1,2499 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>try{ if(localStorage.getItem("tema")==="dark") document.documentElement.setAttribute("data-theme","dark"); }catch(e){}</script>
+<meta name="theme-color" content="#D9A115">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Nivelamento Funchal &ndash; Replay</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+  integrity="sha256-YU3qCpj/P06tdPBJGPax0bm6Q1wltfwjsho5TR4+TYc=" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+  integrity="sha256-YSWCMtmNZNwqex4CEw1nQhvFub2lmU7vcCKP+XVwwXA=" crossorigin="">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold:#D9A115;
+    --gold-dark:#AD7C0C;
+    --gray:#6E747A;
+    --ink:#22252A;
+    --ink-soft:#5B5F65;
+    --paper:#F6F4EF;
+    --surface:#FFFFFF;
+    --line:#E6E1D6;
+    --line-strong:#D6D0C2;
+    --shadow:0 6px 24px rgba(34,37,42,.12);
+    --on-ink:#fff;
+    --glass:rgba(255,255,255,.92);
+    --gold-tint:#FBF1DA;
+
+    --cat-estaca:#D9A115;
+    --cat-test:#3B7A8C;
+    --cat-no:#C1471D;
+    --cat-aux:#8A8478;
+    --cat-sing:#4B7F52;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  h1,h2,h3{font-family:'Archivo',system-ui,sans-serif; text-wrap:balance; margin:0;}
+  .mono{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums;}
+  a{color:inherit;}
+
+  .app{
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    height:var(--app-h, 100vh);   /* fullscreen.js: altura visivel real (nas TVs 100vh pode ser maior que o ecra) */
+  }
+
+  /* ---------- Header ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:0 18px;
+    height:60px;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+    flex:0 0 auto;
+    z-index:20;
+  }
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-mark{width:34px; height:34px; flex:0 0 auto;}
+  .brand-text{display:flex; flex-direction:column; line-height:1.05;}
+  .brand-text .geo{font-family:'Archivo',sans-serif; font-weight:800; font-size:19px; letter-spacing:.2px;}
+  .brand-text .geo span.g{color:var(--gold-dark);}
+  .brand-text .geo span.i{color:var(--gray);}
+  .brand-text .sub{font-size:9.5px; letter-spacing:.14em; color:var(--ink-soft); font-weight:600; text-transform:uppercase; margin-top:1px;}
+  .divider-v{width:1px; align-self:stretch; margin:12px 4px; background:var(--line-strong);}
+  .proj-title{display:flex; flex-direction:column; gap:1px; min-width:0;}
+  .proj-title h1{font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .proj-title .proj-sub{font-size:11.5px; color:var(--ink-soft);}
+  .troco-switch{display:flex; gap:2px; background:var(--paper); border:1px solid var(--line-strong); border-radius:9px; padding:2px; margin-left:14px; flex:0 0 auto;}
+  .troco-switch a{font-size:12px; font-weight:600; color:var(--ink-soft); text-decoration:none; padding:6px 11px; border-radius:7px; white-space:nowrap;}
+  .troco-switch a:hover{color:var(--ink);}
+  .troco-switch a.active{background:var(--gold); color:#4A3300;}
+  @media (max-width:860px){ .troco-switch{margin-left:6px;} .troco-switch a{padding:6px 8px; font-size:11.5px;} }
+  .topbar-stats{
+    margin-left:auto;
+    display:flex;
+    gap:22px;
+    padding-right:4px;
+  }
+  .stat{text-align:right;}
+  .stat b{display:block; font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:500; line-height:1.1;}
+  .stat span{font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.08em;}
+  .menu-btn{
+    display:none;
+    border:1px solid var(--line-strong); background:var(--surface); border-radius:8px;
+    width:36px; height:36px; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto;
+  }
+  .menu-btn svg{width:18px; height:18px; stroke:var(--ink);}
+
+  /* ---------- Layout ---------- */
+  .body-row{flex:1 1 auto; display:flex; min-height:0;}
+
+  .sidebar{
+    width:372px; flex:0 0 auto;
+    background:var(--surface);
+    border-right:1px solid var(--line);
+    display:flex; flex-direction:column;
+    min-height:0;
+  }
+  .sidebar-section{padding:14px 16px; border-bottom:1px solid var(--line);}
+  .sidebar-section.grow{flex:1 1 auto; overflow-y:auto; padding-top:8px;}
+
+  .search-wrap{position:relative;}
+  .search-wrap svg{position:absolute; left:11px; top:50%; transform:translateY(-50%); width:15px; height:15px; stroke:var(--ink-soft); pointer-events:none;}
+  #search{
+    width:100%; padding:9px 12px 9px 34px; border-radius:9px; border:1px solid var(--line-strong);
+    background:var(--paper); font-size:13.5px; font-family:inherit; color:var(--ink);
+  }
+  #search:focus{outline:2px solid var(--gold); outline-offset:1px; background:var(--surface);}
+
+  .view-toggle{display:flex; gap:6px; margin-top:10px;}
+  .view-toggle button{
+    flex:1; padding:7px 8px; border-radius:8px; border:1px solid var(--line-strong);
+    background:var(--paper); font-family:inherit; font-size:12px; font-weight:500; color:var(--ink-soft); cursor:pointer;
+  }
+  .view-toggle button.active{background:var(--ink); border-color:var(--ink); color:var(--on-ink);}
+
+  .legend-title{font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px;}
+  .cat-list{display:flex; flex-direction:column; gap:4px;}
+  .cat-chip{
+    display:flex; align-items:center; gap:9px; padding:6px 8px; border-radius:8px; cursor:pointer;
+    border:1px solid transparent; user-select:none;
+  }
+  .cat-chip:hover{background:var(--paper);}
+  .cat-chip .dot{width:10px; height:10px; border-radius:50%; flex:0 0 auto; background:var(--c); box-shadow:0 0 0 3px color-mix(in srgb, var(--c) 18%, transparent);}
+  .cat-chip .lbl{font-size:13px; flex:1 1 auto;}
+  .cat-chip .cnt{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft);}
+  .cat-chip.off{opacity:.4;}
+  .cat-chip.off .dot{box-shadow:none;}
+
+  .photo-toggle{display:flex; align-items:center; gap:8px; margin-top:12px; font-size:12.5px; color:var(--ink-soft); cursor:pointer;}
+  .photo-toggle input{accent-color:var(--gold-dark); width:14px; height:14px;}
+
+  .list-count{font-size:11px; color:var(--ink-soft); padding:0 2px 8px 2px; display:flex; justify-content:space-between; align-items:baseline;}
+  .list-count b{color:var(--ink); font-weight:600;}
+  .reset-link{font-size:11px; color:var(--gold-dark); cursor:pointer; text-decoration:underline; text-underline-offset:2px; background:none; border:none; font-family:inherit; padding:0;}
+
+  .point-item{
+    display:flex; align-items:center; gap:10px; padding:8px 8px; border-radius:9px; cursor:pointer;
+    border:1px solid transparent;
+  }
+  .point-item:hover{background:var(--paper); border-color:var(--line);}
+  .point-item.selected{background:var(--gold-tint); border-color:var(--gold);}
+  .point-item .dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto; background:var(--c);}
+  .point-item .thumb{
+    width:34px; height:34px; border-radius:7px; object-fit:cover; flex:0 0 auto; background:var(--paper); border:1px solid var(--line);
+  }
+  .point-item .thumb.empty{display:flex; align-items:center; justify-content:center;}
+  .point-item .thumb.empty svg{width:14px; height:14px; stroke:var(--line-strong);}
+  .point-item .info{flex:1 1 auto; min-width:0;}
+  .point-item .info .nm{font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .point-item .info .ct{font-size:10.5px; color:var(--ink-soft);}
+  .point-item .ele{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); flex:0 0 auto; text-align:right;}
+  .point-item .ele small{display:block; font-size:8.5px; text-transform:uppercase; letter-spacing:.06em;}
+  .empty-state{padding:30px 10px; text-align:center; color:var(--ink-soft); font-size:12.5px;}
+
+  .sidebar-footer{padding:10px 16px; font-size:10.5px; color:var(--ink-soft); border-top:1px solid var(--line); line-height:1.5;}
+  .sidebar-footer a{color:var(--gold-dark); text-decoration:none;}
+
+  /* ---------- Map area ---------- */
+  .map-wrap{flex:1 1 auto; display:flex; flex-direction:column; min-width:0; min-height:0;}
+  .map-area{position:relative; flex:1 1 auto; min-height:0;}
+  #map{position:absolute; inset:0; background:#dfe3e6;}
+
+  .basemap-switch{
+    position:absolute; top:12px; right:12px; z-index:1000;
+    background:var(--surface); border-radius:11px; box-shadow:var(--shadow);
+    display:flex; padding:3px; gap:2px; border:1px solid var(--line);
+  }
+  .basemap-switch button{
+    border:none; background:transparent; padding:7px 13px; border-radius:8px; font-family:inherit;
+    font-size:12.5px; font-weight:500; color:var(--ink-soft); cursor:pointer; display:flex; align-items:center; gap:6px;
+  }
+  .basemap-switch button.active{background:var(--ink); color:var(--on-ink);}
+  .basemap-switch button svg{width:14px; height:14px;}
+
+  .layers-btn{
+    position:absolute; top:60px; right:12px; z-index:1001;
+    display:flex; align-items:center; gap:7px; padding:7px 11px; border-radius:10px; cursor:pointer;
+    background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow);
+    font-family:inherit; font-size:12.5px; font-weight:600; color:var(--ink);
+  }
+  .layers-btn:hover{border-color:var(--gold);}
+  .layers-btn svg{width:15px; height:15px;}
+  .layers-btn .chev{width:11px; height:11px; transition:transform .18s ease;}
+  .layers-btn[aria-expanded="true"]{background:var(--ink); color:var(--on-ink); border-color:var(--ink);}
+  .layers-btn[aria-expanded="true"] .chev{transform:rotate(180deg);}
+  .map-toggles{
+    position:absolute; top:104px; right:12px; z-index:1000;
+    background:var(--surface); border-radius:10px; box-shadow:var(--shadow); border:1px solid var(--line);
+    padding:5px; display:none; flex-direction:column;
+  }
+  .map-toggles.open{display:flex;}
+  .map-toggles label{
+    padding:5px 8px; font-size:11.5px; display:flex; align-items:center; gap:7px; cursor:pointer; color:var(--ink-soft); border-radius:6px;
+  }
+  .map-toggles label:hover{background:var(--paper);}
+  .map-toggles input{accent-color:var(--gold-dark);}
+
+  .locate-fab{
+    position:absolute; bottom:26px; right:12px; z-index:1000;
+    width:38px; height:38px; border-radius:10px; background:var(--surface); border:1px solid var(--line);
+    box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .locate-fab svg{width:17px; height:17px; stroke:var(--ink);}
+
+  .qr-fab{
+    position:absolute; bottom:72px; right:12px; z-index:1000;
+    width:38px; height:38px; border-radius:10px; background:var(--surface); border:1px solid var(--line);
+    box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .qr-fab svg{width:17px; height:17px; stroke:var(--ink);}
+
+  .qr-overlay{
+    position:fixed; inset:0; z-index:1000; display:none;
+    background:rgba(20,20,20,.6); align-items:center; justify-content:center; padding:24px;
+  }
+  .qr-overlay.open{display:flex;}
+  .qr-modal{
+    background:var(--surface); border-radius:16px; padding:22px 24px 20px; width:100%; max-width:280px;
+    box-shadow:0 20px 50px rgba(0,0,0,.35); text-align:center; position:relative;
+  }
+  .qr-modal h4{font-family:'Archivo',sans-serif; font-size:15px; font-weight:700; margin:0 0 4px;}
+  .qr-modal p{font-size:11.5px; color:var(--ink-soft); margin:0 0 14px;}
+  .qr-modal img{width:190px; height:190px; display:block; margin:0 auto 14px; border-radius:8px; border:1px solid var(--line);}
+  .qr-modal .qr-url{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); word-break:break-all; background:var(--paper); border-radius:8px; padding:8px 10px; margin-bottom:12px;}
+  .qr-modal button.qr-copy{
+    width:100%; padding:9px; border-radius:9px; border:1px solid var(--line-strong); background:var(--paper);
+    font-family:inherit; font-size:12.5px; font-weight:500; color:var(--ink); cursor:pointer;
+  }
+  .qr-modal button.qr-copy:hover{border-color:var(--gold);}
+  .qr-close{
+    position:absolute; top:10px; right:10px; width:26px; height:26px; border-radius:50%; border:none;
+    background:transparent; cursor:pointer; color:var(--ink-soft); display:flex; align-items:center; justify-content:center;
+  }
+  .qr-close:hover{background:var(--paper); color:var(--ink);}
+  .qr-close svg{width:14px; height:14px;}
+
+  /* ---------- Medir distancia ao longo do tracado ---------- */
+  .measure-btn{
+    margin-top:4px; padding:8px 8px 5px; border:none; border-top:1px solid var(--line); background:transparent;
+    font-family:inherit; font-size:11.5px; font-weight:600; color:var(--ink); cursor:pointer;
+    display:flex; align-items:center; gap:7px; border-radius:0 0 6px 6px; width:100%; text-align:left;
+  }
+  .measure-btn svg{width:14px; height:14px; stroke:currentColor; flex:0 0 auto;}
+  .measure-btn:hover{background:var(--paper);}
+  .measure-btn.active{background:var(--ink); color:var(--on-ink);}
+  .leaflet-container.measuring{cursor:crosshair;}
+  .leaflet-container.measuring .leaflet-interactive{cursor:crosshair;}
+  .measure-panel{
+    position:absolute; top:96px; left:12px; z-index:1000; width:236px; max-width:calc(100% - 24px);
+    background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow);
+    padding:12px 14px 12px; display:none; max-height:calc(100% - 130px); overflow:auto;
+  }
+  .measure-panel.open{display:block;}
+  .measure-panel.one-leg .mp-legs{display:none;}
+
+  .progress-panel{
+    position:absolute; top:96px; left:12px; z-index:1000; width:252px; max-width:calc(100% - 24px);
+    background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow);
+    padding:12px 14px 13px; display:none;
+  }
+  .progress-panel.open{display:block;}
+  .pp-date{font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600; color:var(--ink); margin-bottom:8px;}
+  .pp-slider{width:100%; accent-color:var(--gold-dark); margin-bottom:8px; cursor:pointer;}
+  .pp-slider:disabled{cursor:default; opacity:.5;}
+  .pp-km{font-size:11.5px; color:var(--ink-soft); margin-bottom:10px;}
+  .pp-km b{color:var(--ink); font-family:'IBM Plex Mono',monospace; font-weight:600;}
+  .pp-controls{display:flex; gap:6px;}
+  .pp-controls button{
+    flex:1.4; padding:7px 8px; border-radius:8px; border:1px solid var(--line-strong); background:var(--paper);
+    font-family:inherit; font-size:12px; font-weight:500; color:var(--ink); cursor:pointer;
+  }
+  .pp-controls button:hover:not(:disabled){border-color:var(--gold);}
+  .pp-controls button:disabled{opacity:.5; cursor:default;}
+  .pp-controls button.playing{background:var(--ink); color:var(--on-ink); border-color:var(--ink);}
+  .pp-controls select{
+    flex:1; padding:7px 6px; border-radius:8px; border:1px solid var(--line-strong); background:var(--paper);
+    font-family:inherit; font-size:12px; color:var(--ink); cursor:pointer;
+  }
+  .pp-tip{
+    background:var(--glass); border:1px solid var(--line-strong); border-radius:6px; padding:2px 7px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:700; color:var(--gold-dark);
+    box-shadow:0 1px 4px rgba(34,37,42,.25); white-space:nowrap; pointer-events:none;
+  }
+  .pp-tip::before{display:none;}
+  @media (max-width:860px){
+    .progress-panel{top:auto; bottom:60px; left:12px; right:62px; width:auto; max-width:none; padding:10px 12px;}
+  }
+  .mp-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;}
+  .mp-head b{font-family:'Archivo',sans-serif; font-size:13.5px; font-weight:700;}
+  .mp-close{
+    width:24px; height:24px; border-radius:6px; border:none; background:transparent; cursor:pointer;
+    color:var(--ink-soft); font-size:18px; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+  .mp-close:hover{background:var(--paper); color:var(--ink);}
+  .mp-hint{margin:0 0 8px; font-size:11.5px; line-height:1.4; color:var(--ink-soft);}
+  .mp-hint.warn{color:var(--cat-no); font-weight:600;}
+  .mp-legs{list-style:none; margin:0 0 8px; padding:0; display:flex; flex-direction:column; gap:3px;}
+  .mp-legs li{display:flex; justify-content:space-between; gap:10px; font-size:12px; padding:3px 0; border-bottom:1px dashed var(--line);}
+  .mp-legs .lg{color:var(--ink-soft);}
+  .mp-legs .lv{font-family:'IBM Plex Mono',monospace; font-weight:600;}
+  .mp-total{background:var(--paper); border:1px solid var(--line); border-radius:9px; padding:8px 10px; margin-bottom:9px; display:none;}
+  .mp-total.show{display:block;}
+  .mp-total span{display:block; font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:600;}
+  .mp-total b{display:block; font-family:'IBM Plex Mono',monospace; font-size:21px; font-weight:600; margin-top:1px;}
+  .mp-total em{display:block; font-style:normal; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft);}
+  .mp-actions{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+  .mp-actions button{
+    flex:1; padding:7px 8px; border-radius:8px; border:1px solid var(--line-strong); background:var(--paper);
+    font-family:inherit; font-size:12px; font-weight:500; color:var(--ink); cursor:pointer;
+  }
+  .mp-actions button:hover:not(:disabled){border-color:var(--gold);}
+  .mp-actions button:disabled{opacity:.45; cursor:default;}
+  .msr-pin{
+    width:24px; height:24px; border-radius:50%; background:var(--ink); color:var(--on-ink); border:2px solid var(--surface);
+    box-shadow:0 1px 5px rgba(0,0,0,.5); font:700 11px 'IBM Plex Mono',monospace;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .msr-pin.first{background:var(--gold-dark);}
+  .msr-ghost{width:14px; height:14px; border-radius:50%; background:#fff; border:3px solid #1971C2; box-shadow:0 1px 4px rgba(0,0,0,.5);}
+  .msr-tip{
+    background:var(--glass); border:1px solid var(--line-strong); border-radius:6px; padding:2px 7px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:700; color:var(--ink);
+    box-shadow:0 1px 4px rgba(34,37,42,.25); white-space:nowrap; pointer-events:none;
+  }
+  .msr-tip::before{display:none;}
+  .mp-legs small{display:block; font-size:10.5px; font-weight:500; color:var(--ink-soft); text-align:right;}
+  .mp-total .mp-z{display:block; font-style:normal; font-size:11px; color:var(--ink-soft); margin-top:4px; line-height:1.35;}
+  .ls-legend{display:flex; gap:9px; flex-wrap:wrap; padding:0 8px 3px 29px; font-size:10px; color:var(--ink-soft);}
+  .ls-legend i{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:4px; vertical-align:-1px;}
+  .stale-note{display:none; padding:5px 8px 3px; font-size:11px; font-weight:600; color:#C92A2A; line-height:1.3;}
+  .stale-note.show{display:block;}
+  .profile-chart .pf-measure-band{fill:rgba(25,113,194,.18); pointer-events:none;}
+  .profile-chart .pf-measure-guide{stroke:#1971C2; stroke-width:1.5; stroke-dasharray:3,2; pointer-events:none;}
+  .profile-chart .pf-measure-label{font-family:'IBM Plex Mono',monospace; font-size:9.5px; font-weight:700; fill:#1971C2; pointer-events:none;}
+  .profile-chart .pf-seg{fill:none; stroke-width:3.6; stroke-linecap:butt; stroke-linejoin:round; pointer-events:none;}
+  .profile-chart .pf-seg-hit{fill:none; stroke:transparent; stroke-width:12; cursor:pointer;}
+  .profile-chart .pf-segg:hover .pf-seg{stroke-width:5.6;}
+  @media (max-width:860px){
+    .measure-panel{top:auto; bottom:60px; left:12px; right:62px; width:auto; max-width:none; max-height:44%; padding:8px 12px 10px;}
+    .mp-head{margin-bottom:4px;}
+    .measure-panel.has-total .mp-hint{display:none;}
+    .mp-legs{max-height:44px; overflow:auto; flex-direction:row; flex-wrap:wrap; gap:1px 14px; margin-bottom:6px;}
+    .mp-legs li{border:none; padding:0; gap:6px; font-size:11.5px;}
+    .mp-total.show{display:grid; grid-template-columns:1fr auto; column-gap:10px; align-items:baseline; padding:6px 10px; margin-bottom:8px;}
+    .mp-total span{grid-column:1; grid-row:1 / span 2;}
+    .mp-total b{grid-column:2; font-size:17px; margin-top:0; text-align:right;}
+    .mp-total em{grid-column:2; text-align:right; font-size:11px;}
+    .mp-actions button{padding:6px 8px;}
+    .mp-actions{grid-template-columns:repeat(4,1fr);}
+    .mp-legs small{display:inline; margin-left:4px;}
+    .mp-total .mp-z{grid-column:1 / -1;}
+  }
+
+  .visible-badge{
+    position:absolute; bottom:26px; left:12px; z-index:999;
+    background:rgba(34,37,42,.86); color:#fff; padding:7px 12px; border-radius:20px;
+    font-size:11.5px; font-family:'IBM Plex Mono',monospace; display:flex; align-items:center; gap:7px;
+    backdrop-filter:blur(4px);
+  }
+  .visible-badge .dotpulse{width:6px; height:6px; border-radius:50%; background:var(--gold);}
+
+  .live-team-banner{
+    position:absolute; top:12px; left:56px; z-index:999; max-width:calc(100% - 220px);
+    background:var(--good); color:#fff; padding:7px 14px 7px 11px; border-radius:20px;
+    font-size:11.5px; font-weight:600; display:flex; align-items:center; gap:7px;
+    box-shadow:var(--shadow); cursor:pointer; overflow:hidden;
+  }
+  .live-team-banner[hidden]{display:none;}
+  .live-team-banner span{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .live-team-banner b{font-weight:700;}
+  .live-team-banner .dot{width:7px; height:7px; border-radius:50%; background:#fff; flex:0 0 auto; animation:liveDotPulse 1.6s ease-in-out infinite;}
+  .live-team-banner .live-team-age{font-weight:500; opacity:.85;}
+  @keyframes liveDotPulse{0%,100%{opacity:1;} 50%{opacity:.35;}}
+  @media (max-width:860px){
+    .live-team-banner{left:44px; max-width:calc(100% - 56px); font-size:10.5px; padding:6px 11px 6px 9px;}
+  }
+  @media (prefers-reduced-motion:reduce){ .live-team-banner .dot{animation:none;} }
+
+  /* ---------- Profile panel ---------- */
+  .profile-panel{
+    flex:0 0 auto; height:230px; border-top:1px solid var(--line); background:var(--surface);
+    display:flex; flex-direction:column; transition:height .2s ease;
+  }
+  .profile-panel.collapsed{height:38px;}
+  .profile-panel.collapsed .profile-chart{display:none;}
+  .profile-panel.collapsed .profile-toggle svg{transform:rotate(180deg);}
+  .profile-header{
+    flex:0 0 auto; height:38px; display:flex; align-items:center; gap:10px; padding:0 14px 0 16px;
+    border-bottom:1px solid var(--line); cursor:pointer; user-select:none;
+  }
+  .profile-header h4{font-size:12.5px; font-weight:600; font-family:'Archivo',sans-serif;}
+  .profile-header .profile-stats{
+    margin-left:auto; display:flex; gap:16px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft);
+  }
+  .profile-header .profile-stats b{color:var(--ink); font-weight:500;}
+  .profile-toggle{
+    width:22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+    border:1px solid var(--line-strong); background:var(--paper); flex:0 0 auto;
+  }
+  .profile-toggle svg{width:11px; height:11px; stroke:var(--ink-soft); transition:transform .2s ease;}
+  .profile-chart{flex:1 1 auto; min-height:0; position:relative; cursor:crosshair;}
+  .profile-chart svg{display:block; width:100%; height:100%;}
+  .pf-zoom-box{
+    position:absolute; top:0; height:100%; z-index:15; display:none;
+    background:rgba(217,161,21,.16); border-left:1px solid var(--gold-dark); border-right:1px solid var(--gold-dark);
+    pointer-events:none;
+  }
+  .zoom-reset-btn{
+    display:none; align-items:center; gap:4px; flex:0 0 auto;
+    font-size:10.5px; font-family:'IBM Plex Sans',sans-serif; color:var(--ink-soft);
+    background:var(--paper); border:1px solid var(--line-strong); border-radius:6px; padding:3px 9px; cursor:pointer;
+  }
+  .zoom-reset-btn:hover{border-color:var(--gold); color:var(--ink);}
+  .zoom-reset-btn.visible{display:flex;}
+  .profile-chart .pf-grid{stroke:var(--line); stroke-width:1;}
+  .profile-chart .pf-axis-text{font-family:'IBM Plex Mono',monospace; fill:var(--ink-soft); font-size:9.5px;}
+  .profile-chart .pf-area{fill:url(#pfGradient);}
+  .profile-chart .pf-line{fill:none; stroke:var(--gold-dark); stroke-width:2; stroke-linejoin:round; stroke-linecap:round;}
+  .profile-chart .pf-pt{cursor:pointer;}
+  .profile-chart .pf-pt.dim{opacity:.22;}
+  .profile-chart .pf-pt-hit{fill:transparent; cursor:pointer;}
+  .profile-chart .pf-pt.selected{stroke:var(--ink); stroke-width:2;}
+  .pf-tooltip{
+    position:absolute; display:none; pointer-events:none; z-index:20;
+    background:var(--ink); color:var(--on-ink); font-family:'IBM Plex Mono',monospace; font-size:11.5px;
+    padding:4px 8px; border-radius:6px; white-space:nowrap; transform:translate(-50%,-125%);
+  }
+  .profile-chart .pf-guide{stroke:var(--ink-soft); stroke-width:1; stroke-dasharray:2,3;}
+  .profile-chart .pf-ls15-guide{stroke:var(--cat-no); stroke-width:1; stroke-dasharray:2,3;}
+  .profile-chart .pf-ls15-dot{fill:var(--cat-no); stroke:#fff; stroke-width:1.5;}
+  .profile-chart .pf-ls15-hit{cursor:pointer;}
+  .profile-chart .pf-ls15-label{font-family:'IBM Plex Mono',monospace; font-size:9.5px; font-weight:700; fill:var(--cat-no);}
+
+
+  /* ---------- Leaflet overrides ---------- */
+  .pt-label{
+    background:var(--glass); border:1px solid var(--line-strong); border-radius:5px;
+    padding:1px 6px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:700;
+    color:var(--ink); box-shadow:0 1px 3px rgba(34,37,42,.18); pointer-events:none;
+    white-space:nowrap;
+  }
+  .pt-label::before{display:none;}
+  .pt-label.dim{opacity:.55;}
+  .ls15-label{
+    background:var(--cat-no); border:1px solid var(--cat-no); border-radius:6px;
+    padding:2px 8px; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700;
+    color:#fff; box-shadow:0 2px 7px rgba(193,71,29,.55); pointer-events:none; white-space:nowrap;
+  }
+  .ls15-label::before{display:none;}
+  .ls15-dot{
+    width:22px; height:22px; border-radius:50%; background:var(--cat-no); border:3px solid #fff;
+    box-shadow:0 1px 5px rgba(0,0,0,.4), 0 0 0 5px rgba(193,71,29,.30); position:relative;
+  }
+  .ls15-dot::after{
+    content:''; position:absolute; inset:-9px; border-radius:50%; border:2.5px solid var(--cat-no);
+    animation:ls15pulse 1.6s ease-out infinite;
+  }
+  .ls15-label.stale{background:#8A8478; border-color:#8A8478; box-shadow:0 2px 7px rgba(60,60,60,.35);}
+  .ls15-marker.stale .ls15-dot{background:#8A8478; box-shadow:0 1px 5px rgba(0,0,0,.4), 0 0 0 5px rgba(138,132,120,.30);}
+  .ls15-marker.stale .ls15-dot::after{display:none;}
+  .profile-chart .pf-ls15-guide.stale{stroke:#8A8478;}
+  .profile-chart .pf-ls15-dot.stale{fill:#8A8478;}
+  .profile-chart .pf-ls15-label.stale{fill:#8A8478;}
+  .replay-hud{
+    position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:1100; width:min(560px, calc(100% - 140px));
+    background:var(--glass); backdrop-filter:blur(6px); border:1px solid var(--line-strong); border-radius:16px; box-shadow:var(--shadow);
+    padding:12px 18px 14px; text-align:center;
+  }
+  .replay-hud[hidden]{display:none;}
+  .rh-title{font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); font-weight:700;}
+  .rh-date{font-family:'Archivo',sans-serif; font-weight:800; font-size:30px; line-height:1.1; color:var(--ink); margin-top:2px;}
+  .rh-km{font-family:'IBM Plex Mono',monospace; font-size:15px; color:var(--ink-soft); margin-top:2px;}
+  .rh-km b{font-size:22px; color:var(--gold-dark); font-weight:600;}
+  .rh-bar{height:8px; border-radius:99px; background:var(--line); margin:9px 0 6px; overflow:hidden;}
+  .rh-bar i{display:block; height:100%; width:0; border-radius:99px; background:linear-gradient(90deg,#E9B73A,#D9A115); transition:width .9s ease;}
+  .rh-line{font-size:11.5px; color:var(--ink-soft);}
+  .rh-exit{position:absolute; top:6px; right:8px; border:none; background:transparent; font-size:20px; line-height:1; color:var(--ink-soft); cursor:pointer; padding:2px 6px;}
+  .rh-exit:hover{color:var(--ink);}
+  .rh-repeat{margin-top:9px; border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); border-radius:9px; padding:6px 14px; font:600 12px 'IBM Plex Sans',sans-serif; cursor:pointer;}
+  .rh-repeat:hover{border-color:var(--gold);}
+  html.replay-mode .sidebar, html.replay-mode .layers-btn, html.replay-mode .map-toggles, html.replay-mode .progress-panel,
+  html.replay-mode .live-team-banner, html.replay-mode .qr-fab, html.replay-mode .locate-fab{display:none !important;}
+  @keyframes ls15pulse{
+    0%{ transform:scale(.55); opacity:.95; }
+    100%{ transform:scale(2.3); opacity:0; }
+  }
+  .leaflet-popup-content-wrapper{border-radius:14px; box-shadow:0 10px 34px rgba(34,37,42,.25);}
+  .leaflet-popup-content{margin:0; width:296px !important;}
+  .leaflet-popup-tip{box-shadow:none;}
+  .geoide-popup .popup-head{padding:13px 16px 9px 16px; display:flex; align-items:center; gap:8px;}
+  .geoide-popup .popup-head .tag{
+    font-size:9.5px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; padding:2px 7px; border-radius:20px;
+    color:#fff; background:var(--c);
+  }
+  .geoide-popup h3{font-size:16px; font-weight:700; font-family:'Archivo',sans-serif;}
+  .geoide-popup .popup-img{width:100%; height:168px; object-fit:cover; display:block; background:var(--paper);}
+  .geoide-popup .popup-noimg{
+    height:80px; display:flex; align-items:center; justify-content:center; background:var(--paper); color:var(--ink-soft);
+    font-size:12px; margin:0 16px; border-radius:8px;
+  }
+  .geoide-popup .popup-data{margin:0; padding:12px 16px 14px 16px; display:flex; flex-direction:column; gap:7px;}
+  .geoide-popup .popup-data .row{display:flex; justify-content:space-between; align-items:baseline; gap:10px;}
+  .geoide-popup .popup-data dt{font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;}
+  .geoide-popup .popup-data dd{margin:0; font-family:'IBM Plex Mono',monospace; font-size:12px; text-align:right;}
+  .geoide-popup .popup-link{
+    display:block; text-align:center; margin:0 16px 14px 16px; padding:8px; border-radius:8px; background:var(--paper);
+    font-size:11.5px; font-weight:500; color:var(--ink); text-decoration:none; border:1px solid var(--line);
+  }
+  .geoide-popup .popup-link:hover{border-color:var(--gold);}
+
+  /* ---------- Photo lightbox ---------- */
+  .lightbox-overlay{
+    position:fixed; inset:0; z-index:1000; display:none;
+    background:rgba(20,20,20,.82); align-items:center; justify-content:center; padding:24px;
+  }
+  .lightbox-overlay.open{display:flex;}
+  .lightbox-modal{
+    background:var(--surface); border-radius:14px; overflow:hidden; width:100%; max-width:440px;
+    box-shadow:0 20px 50px rgba(0,0,0,.4);
+  }
+  .lightbox-imgwrap{position:relative; background:var(--ink);}
+  .lightbox-imgwrap img{display:block; width:100%; height:300px; object-fit:cover;}
+  .lightbox-nav{
+    position:absolute; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:50%;
+    background:var(--glass); border:none; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; color:var(--ink);
+  }
+  .lightbox-nav:hover{background:#fff;}
+  .lightbox-nav svg{width:18px; height:18px;}
+  .lightbox-prev{left:12px;} .lightbox-next{right:12px;}
+  .lightbox-close{
+    position:absolute; top:10px; right:10px; width:30px; height:30px; border-radius:50%;
+    background:var(--glass); border:none; cursor:pointer; color:var(--ink);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .lightbox-close:hover{background:#fff;}
+  .lightbox-close svg{width:15px; height:15px;}
+  .lightbox-count{
+    position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+    background:rgba(0,0,0,.55); color:#fff; font-family:'IBM Plex Mono',monospace; font-size:11px;
+    padding:3px 10px; border-radius:99px;
+  }
+  .lightbox-body{padding:14px 18px 18px;}
+  .lightbox-tag{
+    display:inline-block; font-size:9.5px; font-weight:600; text-transform:uppercase; letter-spacing:.06em;
+    padding:2px 8px; border-radius:20px; color:#fff; margin-bottom:8px;
+  }
+  .lightbox-name{font-family:'Archivo',sans-serif; font-weight:700; font-size:18px; margin:0 0 10px;}
+  .lightbox-data{display:flex; gap:22px;}
+  .lightbox-data .lbl{font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); font-weight:600;}
+  .lightbox-data .val{font-family:'IBM Plex Mono',monospace; font-size:13px; margin-top:2px;}
+
+  .leaflet-control-attribution{font-size:10px !important; background:var(--glass) !important;}
+  .leaflet-control-zoom{border:none !important; box-shadow:var(--shadow) !important; margin-top:12px !important; margin-left:12px !important;}
+  .leaflet-control-zoom a{border-radius:0 !important; color:var(--ink) !important;}
+  .leaflet-touch .leaflet-control-zoom{border-radius:10px !important; overflow:hidden;}
+  .leaflet-control-scale-line{background:var(--glass) !important; font-family:'IBM Plex Mono',monospace !important;}
+
+  /* ---------- Marker divicon ---------- */
+  .pt-marker{border-radius:50%; display:flex; align-items:center; justify-content:center;}
+  .pt-marker.has-photo{box-shadow:0 1px 4px rgba(0,0,0,.35);}
+
+  /* ---------- Responsive ---------- */
+  .sidebar-scrim{display:none;}
+  @media (max-width:860px){
+    .topbar-stats{display:none;}
+    .menu-btn{display:flex;}
+    .sidebar{
+      position:fixed; top:60px; bottom:0; left:0; width:86vw; max-width:372px; z-index:1100;
+      transform:translateX(-100%); transition:transform .22s ease; box-shadow:var(--shadow);
+    }
+    .sidebar.open{transform:translateX(0);}
+    .sidebar-scrim{
+      display:block; position:fixed; inset:60px 0 0 0; background:rgba(34,37,42,.35); z-index:1050;
+      opacity:0; pointer-events:none; transition:opacity .2s ease;
+    }
+    .sidebar-scrim.show{opacity:1; pointer-events:auto;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .sidebar{transition:none;}
+  }
+  /* ---------- Tema escuro (botao na barra do topo; escolha guardada no aparelho) ---------- */
+  html[data-theme="dark"]{
+    color-scheme:dark;
+    --ink:#ECE8DF; --ink-soft:#A9A59B; --paper:#16171A; --surface:#212327;
+    --line:#34363B; --line-strong:#464952;
+    --shadow:0 6px 24px rgba(0,0,0,.55);
+    --gold-dark:#E4B53E; --on-ink:#16171A;
+    --glass:rgba(33,35,39,.92); --gold-tint:#3A3220;
+  }
+  html[data-theme="dark"] .leaflet-popup-content-wrapper,
+  html[data-theme="dark"] .leaflet-popup-tip{background:var(--surface); color:var(--ink);}
+  html[data-theme="dark"] .leaflet-container a.leaflet-popup-close-button{color:var(--ink-soft);}
+  html[data-theme="dark"] .leaflet-bar a{background:var(--surface); color:var(--ink) !important; border-bottom-color:var(--line);}
+  html[data-theme="dark"] .leaflet-bar a:hover{background:var(--paper);}
+  html[data-theme="dark"] .leaflet-control-attribution,
+  html[data-theme="dark"] .leaflet-control-attribution a{color:var(--ink-soft) !important;}
+  html[data-theme="dark"] .leaflet-control-scale-line{color:var(--ink); border-color:var(--ink-soft);}
+  html[data-theme="dark"] .leaflet-tooltip{background:var(--surface); color:var(--ink); border-color:var(--line-strong);}
+  html[data-theme="dark"] .leaflet-tooltip-right:before, html[data-theme="dark"] .leaflet-tooltip-left:before{border-right-color:var(--line-strong); border-left-color:var(--line-strong);}
+  html[data-theme="dark"] .msr-ghost{background:var(--surface);}
+  html[data-theme="dark"] .basemap-switch button:not(.active){color:var(--ink-soft);}
+  html[data-theme="dark"] .lightbox-modal{background:var(--surface);}
+  html[data-theme="dark"] .ls15-label{color:#fff;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topbar">
+    <button class="menu-btn" id="menuBtn" aria-label="Abrir lista de pontos">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="47" fill="none" stroke="#D9A115" stroke-width="6"/>
+        <circle cx="50" cy="50" r="38" fill="#D9A115"/>
+        <path d="M22 66 L40 34 L52 54 L60 42 L78 66 Z" fill="#6E747A"/>
+      </svg>
+      <div class="brand-text">
+        <span class="geo"><span class="g">Geo</span><span class="i">ide</span></span>
+        <span class="sub">Geosystems</span>
+      </div>
+    </div>
+    <div class="divider-v"></div>
+    <div class="proj-title">
+      <h1 id="projTitle">Nivelamento Funchal &rarr; Ponta de São Lourenço</h1>
+      <span class="proj-sub">Linha de nivelamento geométrico &middot; Funchal, Madeira</span>
+    </div>
+    <nav class="troco-switch" id="trocoSwitch" aria-label="Escolher troço"></nav>
+    <div class="topbar-stats">
+      <div class="stat"><b id="statTotal">95</b><span>Pontos</span></div>
+      <div class="stat"><b id="statPhotos">86</b><span>Com foto</span></div>
+      <div class="stat"><b id="statKm">39,45</b><span>km</span></div>
+    </div>
+    <a class="nav-link" id="progressLink" href="progresso.html" style="margin-left:16px; font-size:12.5px; font-weight:600; color:var(--ink); text-decoration:none; border:1px solid var(--line-strong); border-radius:8px; padding:8px 14px; white-space:nowrap;">Progresso do nivelamento &rarr;</a>
+  </header>
+
+  <div class="body-row">
+    <div class="sidebar-scrim" id="scrim"></div>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="search" type="text" placeholder="Procurar por nome (ex: T12, NP03, 24000)&hellip;" autocomplete="off">
+        </div>
+        <div class="view-toggle">
+          <button id="viewAll" class="active">Todos os pontos</button>
+          <button id="viewVisible">Visíveis no mapa</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="legend-title">Categorias</div>
+        <div class="cat-list" id="catList"></div>
+        <label class="photo-toggle">
+          <input type="checkbox" id="photoOnly">
+          Mostrar apenas pontos com fotografia
+        </label>
+      </div>
+
+      <div class="sidebar-section grow">
+        <div class="list-count">
+          <span>A mostrar <b id="listCount">0</b> pontos</span>
+          <button class="reset-link" id="resetFilters">repor filtros</button>
+        </div>
+        <div id="pointList"></div>
+      </div>
+
+      <div class="sidebar-footer">
+        Dados de campo importados de levantamento geodésico &middot; coordenadas WGS84 / UTM 28N.<br>
+        Plataforma desenvolvida por <a href="#" onclick="return false;">Geoide Geosystems, SA</a>.
+      </div>
+    </aside>
+
+    <div class="map-wrap">
+     <div class="map-area">
+      <div id="map"></div>
+
+      <div class="replay-hud" id="replayHud" hidden aria-live="polite">
+        <button type="button" class="rh-exit" id="rhExit" title="Sair do replay" aria-label="Sair do replay">&times;</button>
+        <div class="rh-title" id="rhTitle">Replay do avanço</div>
+        <div class="rh-date" id="rhDate">&mdash;</div>
+        <div class="rh-km"><b id="rhKm">0,00</b> km <span id="rhOf"></span></div>
+        <div class="rh-bar"><i id="rhFill"></i></div>
+        <div class="rh-line" id="rhLine"></div>
+        <button type="button" class="rh-repeat" id="rhRepeat" hidden>&#8635; Repetir replay</button>
+      </div>
+
+      <div class="live-team-banner" id="liveTeamBanner" hidden title="Ver a localização da equipa no mapa">
+        <span class="dot"></span>
+        <span>Equipa em campo agora &middot; <b id="liveTeamLine"></b><span class="live-team-age" id="liveTeamAge"></span></span>
+      </div>
+
+      <div class="basemap-switch">
+        <button id="btnStreets">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          Mapa
+        </button>
+        <button id="btnSat" class="active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>
+          Satélite
+        </button>
+      </div>
+
+      <button type="button" class="layers-btn" id="layersBtn" aria-expanded="false" aria-controls="layersPanel" title="Mostrar/esconder o traçado, os nomes, a localização da equipa e outras opções">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        Camadas
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="map-toggles" id="layersPanel">
+        <label>
+          <input type="checkbox" id="routeToggle" checked>
+          Traçado do nivelamento
+        </label>
+        <label id="derivLabel">
+          <input type="checkbox" id="derivToggle" checked>
+          Traçado Derivações
+        </label>
+        <label>
+          <input type="checkbox" id="labelToggle" checked>
+          Nomes dos pontos
+        </label>
+        <label>
+          <input type="checkbox" id="ls15Toggle" checked>
+          Localização da equipa
+        </label>
+        <label>
+          <input type="checkbox" id="linhasToggle" checked>
+          Estado das linhas
+        </label>
+        <div class="ls-legend" aria-hidden="true"><span><i style="background:#2F9E44"></i>Aprovada</span><span><i style="background:#E03131"></i>Reprovada</span><span><i style="background:#F59F00"></i>Em curso</span></div>
+        <div class="stale-note" id="staleNote" role="status"></div>
+        <button type="button" class="measure-btn" id="measureBtn" aria-pressed="false" title="Medir a distância entre pontos, seguindo o traçado do nivelamento">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 8.7 8.7 21.3a1 1 0 0 1-1.4 0L2.7 16.7a1 1 0 0 1 0-1.4L15.3 2.7a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4z"/><path d="m7.5 10.5 2 2M10.5 7.5l2 2M13.5 4.5l2 2M4.5 13.5l2 2"/></svg>
+          Medir distância
+        </button>
+        <button type="button" class="measure-btn" id="progressBtn" aria-pressed="false" title="Ver o progresso do nivelamento dia a dia">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          Progresso no tempo
+        </button>
+      </div>
+
+      <div class="progress-panel" id="progressPanel" role="region" aria-label="Progresso do nivelamento no tempo">
+        <div class="mp-head"><b>Progresso no tempo</b><button type="button" class="mp-close" id="progressClose" aria-label="Fechar">&times;</button></div>
+        <div class="pp-date" id="progressDate">&mdash;</div>
+        <input type="range" id="progressSlider" class="pp-slider" min="0" max="0" value="0" step="1" disabled>
+        <div class="pp-km" id="progressKm"></div>
+        <div class="pp-controls">
+          <button type="button" id="progressPlay" disabled>&#9654; Reproduzir</button>
+          <select id="progressSpeed" title="Velocidade">
+            <option value="1100">Lento</option>
+            <option value="550" selected>Normal</option>
+            <option value="220">Rápido</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="measure-panel" id="measurePanel" role="region" aria-label="Medir distância ao longo do traçado">
+        <div class="mp-head"><b>Medir distância</b><button type="button" class="mp-close" id="mpClose" aria-label="Fechar e limpar medição">&times;</button></div>
+        <p class="mp-hint" id="mpHint"></p>
+        <ol class="mp-legs" id="mpLegs"></ol>
+        <div class="mp-total" id="mpTotal" aria-live="polite"><span>Total ao longo do traçado</span><b id="mpTotalKm"></b><em id="mpTotalM"></em><i class="mp-z" id="mpTotalZ"></i></div>
+        <div class="mp-actions">
+          <button type="button" id="mpUndo" disabled title="Desfazer o último ponto">Desfazer</button>
+          <button type="button" id="mpClear" disabled>Limpar</button>
+          <button type="button" id="mpCopy" disabled title="Copiar o resultado para a área de transferência">Copiar</button>
+          <button type="button" id="mpCsv" disabled title="Descarregar os troços em CSV (Excel)">CSV</button>
+        </div>
+      </div>
+
+      <button class="locate-fab" id="fitAll" title="Repor vista geral" aria-label="Repor vista geral">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h5v5M3 3l6 6M21 3h-5v5M21 3l-6 6M3 21h5v-5M3 21l6-6M21 21h-5v-5M21 21l-6-6"/></svg>
+      </button>
+
+      <button class="qr-fab" id="qrFab" title="Código QR para este mapa" aria-label="Mostrar código QR para este mapa">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM14 20h3M20 14v3M20 20v.01M17 17h.01"/></svg>
+      </button>
+
+      <div class="visible-badge"><span class="dotpulse"></span><span id="visibleCount">0</span> pontos no enquadramento atual</div>
+     </div>
+
+     <div class="qr-overlay" id="qrOverlay" role="dialog" aria-label="Código QR">
+       <div class="qr-modal">
+         <button type="button" class="qr-close" id="qrClose" aria-label="Fechar">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+         </button>
+         <h4>Abrir no telemóvel</h4>
+         <p>Aponta a câmara para veres o mapa aqui</p>
+         <img id="qrImg" alt="Código QR para este mapa">
+         <div class="qr-url" id="qrUrl"></div>
+         <button type="button" class="qr-copy" id="qrCopyBtn">Copiar link</button>
+       </div>
+     </div>
+
+     <div class="profile-panel" id="profilePanel">
+       <div class="profile-header" id="profileHeader">
+         <h4>Perfil longitudinal</h4>
+         <div class="profile-stats">
+           <span>Extensão <b id="pfExt">39,45 km</b></span>
+           <span>Cota mín. <b id="pfMin">&mdash;</b></span>
+           <span>Cota máx. <b id="pfMax">&mdash;</b></span>
+         </div>
+         <button class="zoom-reset-btn" id="pfZoomReset" type="button" title="Repor vista completa do perfil">&#8634; Repor zoom</button>
+         <div class="profile-toggle" id="profileToggle" aria-label="Expandir/colapsar perfil">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+         </div>
+       </div>
+       <div class="profile-chart" id="profileChart"></div>
+     </div>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox-overlay" id="lightboxOverlay">
+  <div class="lightbox-modal">
+    <div class="lightbox-imgwrap">
+      <button class="lightbox-close" id="lightboxClose" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Foto anterior">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <img id="lightboxImg" src="" alt="">
+      <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Foto seguinte">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      <span class="lightbox-count" id="lightboxCount"></span>
+    </div>
+    <div class="lightbox-body">
+      <span class="lightbox-tag" id="lightboxTag"></span>
+      <h3 class="lightbox-name" id="lightboxName"></h3>
+      <div class="lightbox-data">
+        <div><div class="lbl">Cota (z)</div><div class="val" id="lightboxElev"></div></div>
+        <div><div class="lbl">Coord. UTM 28N</div><div class="val" id="lightboxUtm"></div></div>
+        <div><div class="lbl">Lat / Lon</div><div class="val" id="lightboxLatLon"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
+  integrity="sha256-Hk4dIpcqOSb0hZjgyvFOP+cEmDXUKKNE/tT542ZbNQg=" crossorigin=""></script>
+<script>
+// Troços do projeto. Escolhe-se com ?t=rb (por omissão: Ponta de São Lourenço, para os links e QR codes antigos).
+const SECOES = {
+  psl: { id:'psl', curto:'Ponta de São Lourenço', titulo:'Nivelamento Funchal → Ponta de São Lourenço',
+         doc:'Nivelamento Funchal – Ponta de São Lourenço', km:'39,45',
+         mapdata:'mapdata.js', derivacoes:'derivacoes.js', linhas:'linhas_mapa.js', progresso:'progresso.html' },
+  rb:  { id:'rb', curto:'Ribeira Brava', titulo:'Nivelamento Funchal → Ribeira Brava',
+         doc:'Nivelamento Funchal – Ribeira Brava', km:'27,2',
+         mapdata:'mapdata_rb.js', derivacoes:null, linhas:'linhas_mapa_rb.js', progresso:'progresso_rb.html' }
+};
+const SECAO = SECOES[new URLSearchParams(location.search).get('t')] || SECOES.psl;
+document.write('<script src="' + SECAO.mapdata + '"><\/script>');
+if(SECAO.derivacoes) document.write('<script src="' + SECAO.derivacoes + '"><\/script>');
+</script>
+<script src="qrcode-generator.js"></script>
+<script>
+const CATS = {
+  estaca: {label:'Marcas', color:'#D9A115'},
+  test:   {label:'Testemunha',            color:'#3B7A8C'},
+  no:     {label:'Marco NP',              color:'#C1471D'},
+  aux:    {label:'Ponto auxiliar',        color:'#8A8478'},
+  sing:   {label:'Derivações',            color:'#4B7F52'}
+};
+
+function categorize(name){
+  if(/^AUX\d+$/i.test(name)) return 'aux';
+  if(/^\d+[A-Z]$/i.test(name)) return 'aux';
+  if(/^NP\d+$/i.test(name)) return 'no';
+  if(/^T\d+$/i.test(name)) return 'test';
+  if(/^\d+(\+\d{3})?$/.test(name)) return 'estaca';
+  return 'sing';
+}
+
+POINTS.forEach(p => { p.cat = categorize(p.n); p.hasImg = !!p.img; });
+
+(function aplicarTroco(){
+  document.title = SECAO.doc;
+  document.getElementById('projTitle').textContent = SECAO.titulo;
+  document.getElementById('statKm').textContent = SECAO.km;
+  document.getElementById('pfExt').textContent = SECAO.km + ' km';
+  document.getElementById('progressLink').href = SECAO.progresso;
+  document.getElementById('trocoSwitch').innerHTML = Object.values(SECOES).map(s =>
+    `<a href="${s.id === 'psl' ? 'index.html' : 'index.html?t=' + s.id}"${s.id === SECAO.id ? ' class="active" aria-current="page"' : ''}>${s.curto}</a>`).join('');
+})();
+
+const state = {
+  search: '',
+  activeCats: new Set(Object.keys(CATS)),
+  photoOnly: false,
+  viewMode: 'all',
+  selected: null
+};
+
+// ---------------- Map setup ----------------
+const map = L.map('map', { zoomControl:true, minZoom:9 });
+
+const baseStreets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+});
+const baseSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom:19, attribution:'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community'
+});
+const satLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom:19, attribution:''
+});
+
+baseSat.addTo(map);
+satLabels.addTo(map);
+
+const bounds = L.latLngBounds(POINTS.map(p => [p.lat, p.lon]));
+map.fitBounds(bounds, { padding:[40,40] });
+
+// ---------------- Route polyline ----------------
+const routeLayer = L.layerGroup();
+ROUTE.forEach(seg => {
+  if(seg.length < 2) return;
+  L.polyline(seg, { color:'#E03131', weight:5, opacity:.85, dashArray:'1,7', lineCap:'round' }).addTo(routeLayer);
+});
+routeLayer.addTo(map);
+
+(function layersMenu(){
+  const btn = document.getElementById('layersBtn'), panel = document.getElementById('layersPanel');
+  function set(open){
+    panel.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    try { localStorage.setItem('camadas', open ? '1' : '0'); } catch(e) {}
+  }
+  let saved = null;
+  try { saved = localStorage.getItem('camadas'); } catch(e) {}
+  set(saved === '1');   // por omissao fechado: o mapa fica limpo
+  btn.addEventListener('click', () => set(!panel.classList.contains('open')));
+})();
+
+document.getElementById('routeToggle').addEventListener('change', e => {
+  if(e.target.checked) routeLayer.addTo(map); else map.removeLayer(routeLayer);
+});
+
+// ---------------- Traçado Derivações (KMZ -> derivacoes.js) ----------------
+const derivLayer = L.layerGroup();
+(function buildDerivacoes(){
+  const label = document.getElementById('derivLabel');
+  if(typeof DERIVACOES === 'undefined' || !DERIVACOES.linhas || !DERIVACOES.linhas.length){ if(label) label.hidden = true; return; }
+  const cor = '#1E90FF';   // azul (a cor do KMZ era laranja)
+  DERIVACOES.linhas.forEach(seg => {
+    let m = 0;
+    for(let i = 1; i < seg.length; i++) m += haversine(seg[i-1][0], seg[i-1][1], seg[i][0], seg[i][1]);
+    // Mesmo estilo do traçado do nivelamento (pontilhado, largura 5), mas a azul.
+    L.polyline(seg, { color:cor, weight:5, opacity:.85, dashArray:'1,7', lineCap:'round', interactive:false }).addTo(derivLayer);
+    // Linha invisivel e mais larga so para o rato apanhar o tooltip (o pontilhado e fino).
+    const pl = L.polyline(seg, { color:cor, weight:14, opacity:0, lineCap:'round' }).addTo(derivLayer);
+    pl.bindTooltip('Deriva\u00e7\u00e3o \u00B7 ' + (m < 1000 ? Math.round(m) + ' m' : (m/1000).toFixed(2).replace('.', ',') + ' km'), { sticky:true, direction:'top', className:'msr-tip' });
+  });
+  derivLayer.addTo(map);
+})();
+document.getElementById('derivToggle').addEventListener('change', e => {
+  if(e.target.checked) derivLayer.addTo(map); else map.removeLayer(derivLayer);
+});
+
+// ---------------- Basemap switch ----------------
+const btnStreets = document.getElementById('btnStreets');
+const btnSat = document.getElementById('btnSat');
+btnStreets.addEventListener('click', () => {
+  if(map.hasLayer(baseSat)) map.removeLayer(baseSat);
+  if(map.hasLayer(satLabels)) map.removeLayer(satLabels);
+  if(!map.hasLayer(baseStreets)) baseStreets.addTo(map);
+  btnStreets.classList.add('active'); btnSat.classList.remove('active');
+});
+btnSat.addEventListener('click', () => {
+  if(map.hasLayer(baseStreets)) map.removeLayer(baseStreets);
+  if(!map.hasLayer(baseSat)) baseSat.addTo(map);
+  if(!map.hasLayer(satLabels)) satLabels.addTo(map);
+  btnSat.classList.add('active'); btnStreets.classList.remove('active');
+});
+
+L.control.scale({ imperial:false, position:'bottomleft' }).addTo(map);
+
+// ---------------- Markers ----------------
+const markerLayer = L.markerClusterGroup({
+  maxClusterRadius: 55,
+  spiderfyOnMaxZoom: true,
+  showCoverageOnHover: false,
+  // Mantem tudo agrupado ate a mesma escala em que as estacas passam a mostrar
+  // todos os nomes (ZOOM_ALL_LABELS, mais abaixo) - assim os nomes visiveis nao
+  // mudam por zoom (ex: escala 3km vs 1km), so ao passar essa escala de uma vez.
+  disableClusteringAtZoom: 14,
+  iconCreateFunction: function(cluster){
+    const count = cluster.getChildCount();
+    const size = Math.min(20 + Math.sqrt(count)*6, 40);
+    return L.divIcon({
+      html: `<div style="width:${size}px; height:${size}px; border-radius:50%; background:var(--gold); border:2px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,.3); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Sans',sans-serif; font-weight:600; color:#4A3300; font-size:${size>32?12:10.5}px;">${count}</div>`,
+      className: 'pt-cluster',
+      iconSize: [size, size]
+    });
+  }
+}).addTo(map);
+const estacaLayer = L.layerGroup().addTo(map);
+const markersByName = {};
+// As "Marcas" (estacas numeradas, ex: 16000) ficam sempre visiveis e com nome,
+// ja que servem de referencia espacial no percurso - so as categorias mais
+// densas (Testemunha, Marco NP, Auxiliar, Derivacoes) sao agrupadas.
+function layerFor(p){ return p.cat === 'estaca' ? estacaLayer : markerLayer; }
+
+function makeIcon(p, selected){
+  const c = CATS[p.cat].color;
+  const size = selected ? 22 : (p.hasImg ? 15 : 11);
+  const border = selected ? 3 : 2;
+  const style = p.hasImg
+    ? `background:${c}; border:${border}px solid #fff;`
+    : `background:${c}; border:${border}px dashed #fff; opacity:.75;`;
+  return L.divIcon({
+    className: 'pt-marker' + (p.hasImg ? ' has-photo' : ''),
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;${style}"></div>`,
+    iconSize:[size,size],
+    iconAnchor:[size/2,size/2],
+    popupAnchor:[0,-size/2]
+  });
+}
+
+function popupHtml(p){
+  const cat = CATS[p.cat];
+  const img = p.hasImg
+    ? `<a href="javascript:void(0)" onclick="openLightbox('${p.n}')"><img class="popup-img" src="${p.img}" loading="lazy" alt="Fotografia do ponto ${p.n}"></a>`
+    : `<div class="popup-noimg">Sem fotografia disponível</div>`;
+  const utm = (p.mE!=null && p.pN!=null)
+    ? `${p.mE.toFixed(2)} E / ${p.pN.toFixed(2)} N`
+    : '&mdash;';
+  return `
+    <div class="geoide-popup">
+      <div class="popup-head">
+        <span class="tag" style="--c:${cat.color}">${cat.label}</span>
+      </div>
+      <div style="padding:0 16px 10px 16px;"><h3>${p.n}</h3></div>
+      ${img}
+      <dl class="popup-data">
+        <div class="row"><dt>Cota (z)</dt><dd>${p.e.toFixed(2)} m</dd></div>
+        <div class="row"><dt>Coord. UTM 28N</dt><dd>${utm}</dd></div>
+        <div class="row"><dt>Lat / Lon</dt><dd>${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}</dd></div>
+      </dl>
+      ${p.hasImg ? `<a class="popup-link" href="${p.img}" target="_blank" rel="noopener">Ver fotografia em ecrã inteiro &rarr;</a>` : ''}
+    </div>`;
+}
+
+POINTS.forEach(p => {
+  const marker = L.marker([p.lat, p.lon], { icon: makeIcon(p, false) });
+  marker.bindPopup(popupHtml(p), { className:'geoide-popup', maxWidth:320, minWidth:296 });
+  marker.bindTooltip(p.n, { permanent:true, direction:'right', offset:[9,0], className:'pt-label', interactive:false });
+  marker.on('click', () => {
+    if(Measure.isActive()){ marker.closePopup(); Measure.addPoint(marker.getLatLng()); return; }
+    selectPoint(p.n, false);
+  });
+  markersByName[p.n] = marker;
+});
+
+// ---------------- Posicao LS15 (GPS ao vivo do nivel) ----------------
+// Posicao real do telemovel do operador, registada pela Galileo2000 sempre
+// que uma linha de nivelamento e concluida. Atualizado automaticamente.
+const LS15_MAX_LIVE_MIN = 6 * 60;   // acima disto a posicao passa a "ultima posicao conhecida"
+function ls15Date(){
+  const t = (typeof LS15_POS !== 'undefined' && LS15_POS) ? String(LS15_POS.tempo || '') : '';
+  return t.length === 12 ? new Date(2000 + +t.slice(0,2), +t.slice(2,4) - 1, +t.slice(4,6), +t.slice(6,8), +t.slice(8,10), +t.slice(10,12)) : null;
+}
+function ls15Stale(){ const d = ls15Date(); return !!d && (Date.now() - d.getTime()) / 60000 > LS15_MAX_LIVE_MIN; }
+function ls15AgeText(){
+  const d = ls15Date(); if(!d) return '';
+  const min = Math.max(0, (Date.now() - d.getTime()) / 60000);
+  if(min < 60) return 'há ' + Math.round(min) + ' min';
+  const h = min / 60;
+  if(h < 48) return 'há ' + Math.round(h) + ' h';
+  const dias = Math.round(h / 24);
+  return 'há ' + dias + (dias === 1 ? ' dia' : ' dias');
+}
+function ls15Label(){ return ls15Stale() ? 'Última posição · ' + ls15AgeText() : 'Equipa'; }
+function ls15PopupHtml(p){
+  const stale = ls15Stale();
+  const t = String(p.tempo || '');
+  const dataFmt = t.length === 12
+    ? `${t.slice(4,6)}/${t.slice(2,4)}/20${t.slice(0,2)} ${t.slice(6,8)}:${t.slice(8,10)}:${t.slice(10,12)}`
+    : '&mdash;';
+  return `
+    <div class="geoide-popup">
+      <div class="popup-head">
+        <span class="tag" style="--c:${stale ? '#8A8478' : '#C1471D'}">${stale ? 'Última posição conhecida' : 'Equipa &ndash; posição GPS'}</span>
+      </div>
+      <div style="padding:0 16px 10px 16px;"><h3>${p.ponto || '&mdash;'}</h3></div>
+      <dl class="popup-data">
+        <div class="row"><dt>Linha</dt><dd>${p.linha || '&mdash;'}</dd></div>
+        <div class="row"><dt>Cota (z)</dt><dd>${p.elev != null ? p.elev.toFixed(2) + ' m' : '&mdash;'}</dd></div>
+        <div class="row"><dt>Lat / Lon</dt><dd>${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}</dd></div>
+        <div class="row"><dt>Registado em</dt><dd>${dataFmt}${stale ? ' (' + ls15AgeText() + ')' : ''}</dd></div>
+      </dl>
+    </div>`;
+}
+let ls15Marker = null;
+if (typeof LS15_POS !== 'undefined' && LS15_POS) {
+  const mkIcon = stale => L.divIcon({
+    className: 'ls15-marker' + (stale ? ' stale' : ''),
+    html: `<div class="ls15-dot"></div>`,
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+    popupAnchor: [0, -11]
+  });
+  ls15Marker = L.marker([LS15_POS.lat, LS15_POS.lon], { icon: mkIcon(ls15Stale()), zIndexOffset: 1000 });
+  ls15Marker.bindPopup(() => ls15PopupHtml(LS15_POS), { className:'geoide-popup', maxWidth:320, minWidth:296 });
+  ls15Marker.addTo(map);
+  // Etiqueta/cor conforme a posicao seja recente ("Equipa") ou antiga ("Ultima posicao - ha N dias").
+  let ls15Shown = null;
+  function refreshLs15(){
+    const stale = ls15Stale(), label = ls15Label();
+    if(ls15Shown === null || ls15Shown.stale !== stale){
+      ls15Marker.setIcon(mkIcon(stale));
+      ls15Marker.unbindTooltip();
+      ls15Marker.bindTooltip(label, { permanent:true, direction:'right', offset:[14,0], className:'ls15-label' + (stale ? ' stale' : ''), interactive:false });
+      if(ls15Shown !== null && typeof renderProfile === 'function') renderProfile();
+    } else if(ls15Shown.label !== label){
+      ls15Marker.setTooltipContent(label);
+    }
+    ls15Shown = { stale, label };
+  }
+  refreshLs15();
+  setInterval(refreshLs15, 60000);
+}
+document.getElementById('ls15Toggle').addEventListener('change', e => {
+  if (!ls15Marker) return;
+  if (e.target.checked) ls15Marker.addTo(map); else map.removeLayer(ls15Marker);
+});
+
+// ---------------- Banner "Equipa em campo agora" ----------------
+// So aparece enquanto a ultima posicao GPS (LS15_POS) for recente - evita dar a
+// entender que a equipa esta em campo com uma posicao de ha dias.
+(function liveTeamBanner(){
+  const LIVE_MAX_MIN = 6 * 60; // 6 horas
+  const el = document.getElementById('liveTeamBanner');
+  const lineEl = document.getElementById('liveTeamLine'), ageEl = document.getElementById('liveTeamAge');
+  if(!el || typeof LS15_POS === 'undefined' || !LS15_POS || !LS15_POS.tempo) return;
+  const t = String(LS15_POS.tempo);
+  if(t.length !== 12) return;
+  const d = new Date(2000 + +t.slice(0,2), +t.slice(2,4) - 1, +t.slice(4,6), +t.slice(6,8), +t.slice(8,10), +t.slice(10,12));
+  function tick(){
+    const min = (Date.now() - d.getTime()) / 60000;
+    if(!(min >= 0) || min > LIVE_MAX_MIN){ el.hidden = true; return; }
+    el.hidden = false;
+    lineEl.textContent = LS15_POS.linha || '';
+    ageEl.textContent = min < 5 ? '' : (min < 60 ? ` (há ${Math.round(min)} min)` : ` (há ${(min/60).toFixed(1).replace('.', ',')} h)`);
+  }
+  tick();
+  setInterval(tick, 60000);
+  el.addEventListener('click', () => {
+    if(!ls15Marker) return;
+    if(!document.getElementById('ls15Toggle').checked){ document.getElementById('ls15Toggle').checked = true; ls15Marker.addTo(map); }
+    map.flyTo(ls15Marker.getLatLng(), Math.max(map.getZoom(), 16), { duration:.6 });
+    map.once('moveend', () => ls15Marker.openPopup());
+  });
+})();
+
+// ---------------- Nomes dos pontos em funcao do zoom ----------------
+// As estacas (pontos numerados, ex: 8000) cobrem todo o tracado a cada ~800m e
+// ficam sempre visiveis no mapa. Com o mapa muito afastado (escala >=1km) mostrar
+// o nome de todas ficaria ilegivel, por isso so aparece 1 em cada ~5km; a partir
+// da escala 500m (mais aproximado) mostram-se os nomes de todas as estacas E das
+// restantes categorias - controlado explicitamente aqui (nao pelo agrupamento do
+// Leaflet.markercluster, que por si so pode destacar um ponto isolado num zoom
+// intermedio e dar a sensacao de nomes diferentes entre, por ex., escala 3km e 1km).
+function chainageOf(name){
+  const m = name.match(/^(\d+)(?:\+(\d{3}))?$/);
+  if(!m) return null;
+  return m[2] !== undefined ? parseInt(m[1],10)*1000 + parseInt(m[2],10) : parseInt(m[1],10);
+}
+const ZOOM_ALL_LABELS = 14;   // escala <=500m: mostra o nome de todos os pontos
+const SPARSE_STEP_M = 4800;   // escala >=1km: das estacas, so mostra a cada ~5km
+function updateLabelsForZoom(){
+  const toggleOn = document.getElementById('labelToggle').checked;
+  const showAll = map.getZoom() >= ZOOM_ALL_LABELS;
+  POINTS.forEach(p => {
+    const marker = markersByName[p.n];
+    if(!marker) return;
+    let keep;
+    if(p.cat === 'estaca'){
+      const chainage = chainageOf(p.n);
+      keep = toggleOn && (showAll || (chainage !== null && chainage % SPARSE_STEP_M === 0));
+    } else {
+      keep = toggleOn && showAll;
+    }
+    keep ? marker.openTooltip() : marker.closeTooltip();
+  });
+}
+map.on('zoomend', updateLabelsForZoom);
+// A chamada inicial e feita em refreshAll() (mais abaixo), depois dos marcadores
+// serem mesmo adicionados ao mapa - antes disso closeTooltip() nao tem efeito.
+
+document.getElementById('labelToggle').addEventListener('change', updateLabelsForZoom);
+
+// ---------------- Filtering ----------------
+function matchesFilter(p){
+  if(!state.activeCats.has(p.cat)) return false;
+  if(state.photoOnly && !p.hasImg) return false;
+  if(state.search && !p.n.toLowerCase().includes(state.search)) return false;
+  return true;
+}
+
+// ---------------- Photo lightbox ----------------
+const lightboxOverlay = document.getElementById('lightboxOverlay');
+let lightboxList = [];
+let lightboxIndex = 0;
+
+function renderLightbox(){
+  const p = lightboxList[lightboxIndex];
+  const cat = CATS[p.cat];
+  const utm = (p.mE!=null && p.pN!=null) ? `${p.mE.toFixed(2)} E / ${p.pN.toFixed(2)} N` : '&mdash;';
+  document.getElementById('lightboxImg').src = p.img;
+  document.getElementById('lightboxImg').alt = `Fotografia do ponto ${p.n}`;
+  const tag = document.getElementById('lightboxTag');
+  tag.textContent = cat.label;
+  tag.style.background = cat.color;
+  document.getElementById('lightboxName').textContent = p.n;
+  document.getElementById('lightboxElev').textContent = p.e.toFixed(2) + ' m';
+  document.getElementById('lightboxUtm').innerHTML = utm;
+  document.getElementById('lightboxLatLon').textContent = `${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}`;
+  document.getElementById('lightboxCount').textContent = `${lightboxIndex+1} de ${lightboxList.length} fotos`;
+}
+
+function openLightbox(name){
+  lightboxList = POINTS.filter(p => p.hasImg && matchesFilter(p));
+  lightboxIndex = lightboxList.findIndex(p => p.n === name);
+  if(lightboxIndex === -1) lightboxIndex = 0;
+  if(!lightboxList.length) return;
+  renderLightbox();
+  lightboxOverlay.classList.add('open');
+}
+function closeLightbox(){ lightboxOverlay.classList.remove('open'); }
+function lightboxStep(delta){
+  lightboxIndex = (lightboxIndex + delta + lightboxList.length) % lightboxList.length;
+  renderLightbox();
+}
+document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+document.getElementById('lightboxPrev').addEventListener('click', () => lightboxStep(1));
+document.getElementById('lightboxNext').addEventListener('click', () => lightboxStep(-1));
+lightboxOverlay.addEventListener('click', e => { if(e.target === lightboxOverlay) closeLightbox(); });
+window.addEventListener('keydown', e => {
+  if(!lightboxOverlay.classList.contains('open')) return;
+  if(e.key === 'Escape') closeLightbox();
+  else if(e.key === 'ArrowLeft') lightboxStep(1);
+  else if(e.key === 'ArrowRight') lightboxStep(-1);
+});
+
+function rebuildMarkers(){
+  markerLayer.clearLayers();
+  estacaLayer.clearLayers();
+  POINTS.forEach(p => { if(matchesFilter(p)) layerFor(p).addLayer(markersByName[p.n]); });
+}
+
+function pointItemHtml(p){
+  const cat = CATS[p.cat];
+  const thumb = p.hasImg
+    ? `<img class="thumb" src="${p.img}" loading="lazy" alt="">`
+    : `<div class="thumb empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="14" r="3.5"/></svg></div>`;
+  return `
+    <div class="point-item${state.selected===p.n ? ' selected' : ''}" data-name="${p.n}" style="--c:${cat.color}">
+      <span class="dot"></span>
+      ${thumb}
+      <div class="info">
+        <div class="nm">${p.n}</div>
+        <div class="ct">${cat.label}</div>
+      </div>
+      <div class="ele">${p.e.toFixed(1)} m<small>cota</small></div>
+    </div>`;
+}
+
+function renderList(){
+  let list = POINTS.filter(matchesFilter);
+  if(state.viewMode === 'visible'){
+    const b = map.getBounds();
+    list = list.filter(p => b.contains([p.lat, p.lon]));
+  }
+  const container = document.getElementById('pointList');
+  document.getElementById('listCount').textContent = list.length;
+  if(list.length === 0){
+    container.innerHTML = `<div class="empty-state">Nenhum ponto corresponde aos filtros atuais.</div>`;
+    return;
+  }
+  container.innerHTML = list.map(pointItemHtml).join('');
+  container.querySelectorAll('.point-item').forEach(el => {
+    el.addEventListener('click', () => selectPoint(el.dataset.name, true));
+  });
+}
+
+function updateVisibleBadge(){
+  const b = map.getBounds();
+  const n = POINTS.filter(p => matchesFilter(p) && b.contains([p.lat, p.lon])).length;
+  document.getElementById('visibleCount').textContent = n;
+}
+
+function refreshAll(){
+  rebuildMarkers();
+  // rebuildMarkers() volta a adicionar os marcadores ao mapa, o que reabre
+  // sempre os tooltips permanentes (comportamento por omissao do Leaflet) -
+  // por isso a logica de nomes por zoom tem de correr sempre depois disto.
+  updateLabelsForZoom();
+  renderList();
+  updateVisibleBadge();
+  if(!profilePanel.classList.contains('collapsed')) renderProfile();
+}
+
+function selectPoint(name, flyTo){
+  state.selected = name;
+  const p = POINTS.find(x => x.n === name);
+  if(!p) return;
+  const marker = markersByName[name];
+  const layer = layerFor(p);
+  if(!layer.hasLayer(marker)) layer.addLayer(marker);
+  if(flyTo){
+    map.flyTo([p.lat, p.lon], Math.max(map.getZoom(), 16), { duration:.6 });
+    if(layer === markerLayer) map.once('moveend', () => markerLayer.zoomToShowLayer(marker, () => marker.openPopup()));
+    else map.once('moveend', () => marker.openPopup());
+  } else {
+    marker.openPopup();
+  }
+  renderList();
+  if(!profilePanel.classList.contains('collapsed')) renderProfile();
+  if(window.innerWidth <= 860) closeSidebar();
+}
+
+// ---------------- Category legend / filters ----------------
+const catCounts = {};
+Object.keys(CATS).forEach(k => catCounts[k] = POINTS.filter(p => p.cat===k).length);
+
+const catListEl = document.getElementById('catList');
+catListEl.innerHTML = Object.entries(CATS).map(([k,c]) => `
+  <div class="cat-chip" data-cat="${k}" style="--c:${c.color}">
+    <span class="dot"></span>
+    <span class="lbl">${c.label}</span>
+    <span class="cnt">${catCounts[k]}</span>
+  </div>`).join('');
+
+catListEl.querySelectorAll('.cat-chip').forEach(el => {
+  el.addEventListener('click', () => {
+    const k = el.dataset.cat;
+    if(state.activeCats.has(k)) state.activeCats.delete(k); else state.activeCats.add(k);
+    el.classList.toggle('off', !state.activeCats.has(k));
+    refreshAll();
+  });
+});
+
+document.getElementById('photoOnly').addEventListener('change', e => {
+  state.photoOnly = e.target.checked;
+  refreshAll();
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  state.search = e.target.value.trim().toLowerCase();
+  refreshAll();
+});
+
+document.getElementById('resetFilters').addEventListener('click', () => {
+  state.search = ''; document.getElementById('search').value = '';
+  state.photoOnly = false; document.getElementById('photoOnly').checked = false;
+  state.activeCats = new Set(Object.keys(CATS));
+  catListEl.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('off'));
+  refreshAll();
+});
+
+const viewAllBtn = document.getElementById('viewAll');
+const viewVisibleBtn = document.getElementById('viewVisible');
+viewAllBtn.addEventListener('click', () => {
+  state.viewMode = 'all'; viewAllBtn.classList.add('active'); viewVisibleBtn.classList.remove('active');
+  renderList();
+});
+viewVisibleBtn.addEventListener('click', () => {
+  state.viewMode = 'visible'; viewVisibleBtn.classList.add('active'); viewAllBtn.classList.remove('active');
+  renderList();
+});
+
+document.getElementById('fitAll').addEventListener('click', () => map.fitBounds(bounds, { padding:[40,40] }));
+
+map.on('moveend zoomend', () => {
+  updateVisibleBadge();
+  if(state.viewMode === 'visible') renderList();
+});
+
+// ---------------- Mobile sidebar ----------------
+const sidebar = document.getElementById('sidebar');
+const scrim = document.getElementById('scrim');
+function openSidebar(){ sidebar.classList.add('open'); scrim.classList.add('show'); }
+function closeSidebar(){ sidebar.classList.remove('open'); scrim.classList.remove('show'); }
+document.getElementById('menuBtn').addEventListener('click', () => {
+  sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+});
+scrim.addEventListener('click', closeSidebar);
+
+// ---------------- Longitudinal profile ----------------
+function haversine(lat1, lon1, lat2, lon2){
+  const R = 6371000, toRad = d => d*Math.PI/180;
+  const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+
+// Ordered Ponta de São Lourenço -> Funchal in the source file; reversed here so the
+// profile reads left-to-right in the same direction as the project title (Funchal -> PSL).
+// "0+000" is excluded: it carries no real levelled elevation (placeholder z=0 in the source).
+const PROFILE = POINTS.filter(p => p.n !== '0+000').slice().reverse();
+(function computeProfileDistances(){
+  let acc = 0;
+  PROFILE.forEach((p, i) => {
+    if(i > 0) acc += haversine(PROFILE[i-1].lat, PROFILE[i-1].lon, p.lat, p.lon);
+    p.dist = acc;
+  });
+})();
+
+// Projeta uma posicao GPS (ex: LS15) no eixo de distancia do perfil, encontrando
+// o ponto mais proximo ao longo da poligonal PROFILE (aproximacao equirretangular
+// local, suficiente a esta escala) - devolve a distancia acumulada equivalente.
+function projectDistanceAlongProfile(lat, lon){
+  const mPerDegLat = 111320;
+  const mPerDegLon = 111320 * Math.cos(lat * Math.PI / 180);
+  const toXY = (plat, plon) => [plon * mPerDegLon, plat * mPerDegLat];
+  const [qx, qy] = toXY(lat, lon);
+  let best = null;
+  for(let i = 0; i < PROFILE.length - 1; i++){
+    const a = PROFILE[i], b = PROFILE[i+1];
+    const [ax, ay] = toXY(a.lat, a.lon);
+    const [bx, by] = toXY(b.lat, b.lon);
+    const dx = bx-ax, dy = by-ay;
+    const len2 = dx*dx + dy*dy;
+    let t = len2 > 0 ? ((qx-ax)*dx + (qy-ay)*dy) / len2 : 0;
+    t = Math.max(0, Math.min(1, t));
+    const distToSeg = Math.hypot(qx - (ax+t*dx), qy - (ay+t*dy));
+    if(best === null || distToSeg < best.distToSeg){
+      // Cota interpolada ao longo do perfil (nao a do GPS do telemovel, que e
+      // muito menos precisa) - assim o marcador cai sempre em cima da linha.
+      best = { distToSeg, dist: a.dist + t*(b.dist - a.dist), elev: a.e + t*(b.e - a.e) };
+    }
+  }
+  return best;
+}
+const LS15_PROFILE = (typeof LS15_POS !== 'undefined' && LS15_POS)
+  ? projectDistanceAlongProfile(LS15_POS.lat, LS15_POS.lon)
+  : null;
+
+const profilePanel = document.getElementById('profilePanel');
+const profileHeader = document.getElementById('profileHeader');
+const profileChartEl = document.getElementById('profileChart');
+profileChartEl.title = 'Scroll para ampliar/reduzir · arrasta para selecionar uma zona · duplo-clique para repor';
+
+profileChartEl.addEventListener('mousemove', e => {
+  const tooltip = document.getElementById('pfTooltip');
+  if(!tooltip) return;
+  const t = e.target;
+  const segG = (t.closest && t.classList && !t.classList.contains('pf-pt-hit')) ? t.closest('.pf-segg') : null;
+  if(segG){
+    const r = profileChartEl.getBoundingClientRect();
+    tooltip.style.left = (e.clientX - r.left) + 'px';
+    tooltip.style.top = (e.clientY - r.top) + 'px';
+    tooltip.textContent = Linhas.tooltipText(segG.dataset.linha);
+    tooltip.style.display = 'block';
+    return;
+  }
+  if(!t.classList || !t.classList.contains('pf-pt-hit')){ tooltip.style.display = 'none'; return; }
+  tooltip.style.left = t.getAttribute('cx') + 'px';
+  tooltip.style.top = t.getAttribute('cy') + 'px';
+  let lineInfo = '';
+  const pd = PROFILE.find(q => q.n === t.dataset.name);
+  if(pd){ const sg = profileLineSegs.find(g => pd.dist >= g.dA && pd.dist <= g.dB); if(sg) lineInfo = ' \u00B7 ' + Linhas.tooltipText(sg.linha); }
+  tooltip.textContent = `${t.dataset.name} \u00B7 ${t.dataset.e} m${lineInfo}`;
+  tooltip.style.display = 'block';
+});
+profileChartEl.addEventListener('mouseleave', () => {
+  const tooltip = document.getElementById('pfTooltip');
+  if(tooltip) tooltip.style.display = 'none';
+});
+
+var measureProfileMarks = [];   // [{dist,label}] - pontos medidos (ferramenta Medir distancia)
+var profileLineSegs = [];       // [{linha,color,dA,dB}] - troços das linhas no perfil (estado das linhas)
+const PF_PAD = { l:44, r:14, t:12, b:22 };
+let zoomRange = null; // {min,max} em metros de distancia, ou null = vista completa
+let pfDragStart = null;
+
+// Cota interpolada ao longo do perfil na distancia d (m).
+function pfElevAt(d){
+  for(let i = 1; i < PROFILE.length; i++){
+    if(d <= PROFILE[i].dist){
+      const a = PROFILE[i-1], b = PROFILE[i], t = (b.dist - a.dist) ? (d - a.dist) / (b.dist - a.dist) : 0;
+      return a.e + t * (b.e - a.e);
+    }
+  }
+  return PROFILE[PROFILE.length-1].e;
+}
+
+function pfFullExtent(){ return [0, PROFILE[PROFILE.length-1].dist]; }
+function pfCurrentDomain(){ return zoomRange ? [zoomRange.min, zoomRange.max] : pfFullExtent(); }
+
+function pfNiceStep(span){
+  if(span <= 0) return 1000;
+  const raw = span / 6;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw / mag;
+  if(norm < 1.5) return 1*mag;
+  if(norm < 3.5) return 2*mag;
+  if(norm < 7.5) return 5*mag;
+  return 10*mag;
+}
+
+function pfZoomBox(){
+  let box = profileChartEl.querySelector('.pf-zoom-box');
+  if(!box){ box = document.createElement('div'); box.className = 'pf-zoom-box'; profileChartEl.appendChild(box); }
+  return box;
+}
+
+function renderProfile(){
+  const rect = profileChartEl.getBoundingClientRect();
+  const W = Math.max(240, rect.width), H = Math.max(90, rect.height);
+  const { l:padL, r:padR, t:padT, b:padB } = PF_PAD;
+  const innerW = W - padL - padR, innerH = H - padT - padB;
+  const baseY = padT + innerH;
+
+  const [minDist, maxDist] = pfCurrentDomain();
+  const span = maxDist - minDist;
+  const maxE = Math.max(...PROFILE.map(p => p.e));
+  const yMax = Math.ceil((maxE + 15) / 50) * 50;
+  const yStep = yMax > 300 ? 100 : 50;
+
+  const x = d => padL + (span ? ((d-minDist)/span)*innerW : 0);
+  const y = e => baseY - (yMax ? (e/yMax)*innerH : 0);
+
+  let grid = '';
+  for(let v = 0; v <= yMax; v += yStep){
+    const gy = y(v).toFixed(1);
+    grid += `<line class="pf-grid" x1="${padL}" x2="${(W-padR).toFixed(1)}" y1="${gy}" y2="${gy}"/>`;
+    grid += `<text class="pf-axis-text" x="${padL-7}" y="${(y(v)+3).toFixed(1)}" text-anchor="end">${v}</text>`;
+  }
+  let xLabels = '';
+  const step = pfNiceStep(span);
+  const dec = step < 1000 ? 1 : 0;
+  const firstTick = Math.ceil(minDist/step)*step;
+  for(let d = firstTick; d <= maxDist; d += step){
+    xLabels += `<text class="pf-axis-text" x="${x(d).toFixed(1)}" y="${(H-6).toFixed(1)}" text-anchor="middle">${(d/1000).toFixed(dec)} km</text>`;
+  }
+
+  const linePath = PROFILE.map((p,i) => `${i===0?'M':'L'}${x(p.dist).toFixed(1)},${y(p.e).toFixed(1)}`).join(' ');
+  const areaPath = `${linePath} L${x(maxDist).toFixed(1)},${baseY.toFixed(1)} L${x(minDist).toFixed(1)},${baseY.toFixed(1)} Z`;
+
+  let guide = '';
+  const selP = PROFILE.find(p => p.n === state.selected);
+  if(selP){
+    guide = `<line class="pf-guide" x1="${x(selP.dist).toFixed(1)}" x2="${x(selP.dist).toFixed(1)}" y1="${padT}" y2="${baseY.toFixed(1)}"/>`;
+  }
+
+  let dots = '';
+  PROFILE.forEach(p => {
+    if(p.dist < minDist || p.dist > maxDist) return;
+    const active = matchesFilter(p);
+    const cx = x(p.dist).toFixed(1), cy = y(p.e).toFixed(1);
+    const r = p.hasImg ? 3.2 : 2.3;
+    const cls = 'pf-pt' + (state.selected===p.n ? ' selected' : '') + (active ? '' : ' dim');
+    dots += `<circle class="${cls}" cx="${cx}" cy="${cy}" r="${r}" fill="${CATS[p.cat].color}"></circle>`;
+    if(active) dots += `<circle class="pf-pt-hit" data-name="${p.n}" data-e="${p.e.toFixed(1)}" cx="${cx}" cy="${cy}" r="9"></circle>`;
+  });
+
+  let ls15MarkerSvg = '';
+  if(LS15_PROFILE && LS15_PROFILE.dist >= minDist && LS15_PROFILE.dist <= maxDist){
+    const lx = x(LS15_PROFILE.dist).toFixed(1);
+    const ly = y(LS15_PROFILE.elev).toFixed(1);
+    const labelAbove = LS15_PROFILE.elev/yMax < 0.85;
+    const ltY = labelAbove ? (parseFloat(ly)-9).toFixed(1) : (parseFloat(ly)+15).toFixed(1);
+    const sc = ls15Stale() ? ' stale' : '';
+    ls15MarkerSvg = `<line class="pf-ls15-guide${sc}" x1="${lx}" x2="${lx}" y1="${padT}" y2="${baseY.toFixed(1)}"/>
+    <circle class="pf-ls15-dot${sc}" cx="${lx}" cy="${ly}" r="4"></circle>
+    <circle class="pf-ls15-hit" cx="${lx}" cy="${ly}" r="9" fill="transparent"></circle>
+    <text class="pf-ls15-label${sc}" x="${lx}" y="${ltY}" text-anchor="middle">${sc ? 'Última posição' : 'Equipa'}</text>`;
+  }
+
+  let segSvg = '';
+  profileLineSegs.forEach(sg => {
+    const d0 = Math.max(sg.dA, minDist), d1 = Math.min(sg.dB, maxDist);
+    if(d1 <= d0) return;
+    const pts = [[d0, pfElevAt(d0)]];
+    PROFILE.forEach(p => { if(p.dist > d0 && p.dist < d1) pts.push([p.dist, p.e]); });
+    pts.push([d1, pfElevAt(d1)]);
+    const dPath = pts.map((q, i) => `${i===0?'M':'L'}${x(q[0]).toFixed(1)},${y(q[1]).toFixed(1)}`).join(' ');
+    segSvg += `<g class="pf-segg" data-linha="${sg.linha}"><path class="pf-seg" d="${dPath}" stroke="${sg.color}"/><path class="pf-seg-hit" d="${dPath}"/></g>`;
+  });
+
+  let measureSvg = '';
+  if(measureProfileMarks.length){
+    const M = measureProfileMarks;
+    for(let i = 1; i < M.length; i++){
+      const d0 = Math.max(Math.min(M[i-1].dist, M[i].dist), minDist), d1 = Math.min(Math.max(M[i-1].dist, M[i].dist), maxDist);
+      if(d1 <= d0) continue;
+      measureSvg += `<rect class="pf-measure-band" x="${x(d0).toFixed(1)}" y="${padT}" width="${Math.max(1, x(d1)-x(d0)).toFixed(1)}" height="${(baseY-padT).toFixed(1)}"/>`;
+    }
+    M.forEach(m => {
+      if(m.dist < minDist || m.dist > maxDist) return;
+      const mx = x(m.dist).toFixed(1);
+      measureSvg += `<line class="pf-measure-guide" x1="${mx}" x2="${mx}" y1="${padT}" y2="${baseY.toFixed(1)}"/><text class="pf-measure-label" x="${mx}" y="${padT+9}" text-anchor="middle">${m.label}</text>`;
+    });
+  }
+
+  profileChartEl.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <defs><linearGradient id="pfGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#D9A115" stop-opacity=".28"/>
+      <stop offset="100%" stop-color="#D9A115" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${grid}
+    <line class="pf-grid" x1="${padL}" x2="${(W-padR).toFixed(1)}" y1="${baseY.toFixed(1)}" y2="${baseY.toFixed(1)}"/>
+    ${guide}
+    <path class="pf-area" d="${areaPath}"/>
+    <path class="pf-line" d="${linePath}"/>
+    ${segSvg}
+    ${dots}
+    ${measureSvg}
+    ${ls15MarkerSvg}
+    ${xLabels}
+  </svg><div class="pf-tooltip" id="pfTooltip"></div>`;
+
+  profileChartEl.querySelectorAll('.pf-segg').forEach(g => {
+    g.addEventListener('mousedown', e => { g._downX = e.clientX; });
+    g.addEventListener('click', e => {
+      if(Math.abs(e.clientX - (g._downX == null ? e.clientX : g._downX)) > 4) return;   // foi um arrastar (zoom), nao um clique
+      if(!Measure.isActive()) Linhas.open(g.dataset.linha);
+    });
+  });
+  profileChartEl.querySelectorAll('.pf-pt-hit').forEach(el => {
+    el.addEventListener('click', () => selectPoint(el.dataset.name, true));
+  });
+  const ls15HitEl = profileChartEl.querySelector('.pf-ls15-hit');
+  if(ls15HitEl) ls15HitEl.addEventListener('click', () => {
+    if(!ls15Marker) return;
+    if(!map.hasLayer(ls15Marker)) ls15Marker.addTo(map);
+    map.flyTo([LS15_POS.lat, LS15_POS.lon], Math.max(map.getZoom(), 16), { duration:.6 });
+    map.once('moveend', () => ls15Marker.openPopup());
+    if(window.innerWidth <= 860) closeSidebar();
+  });
+
+  document.getElementById('pfMin').textContent = Math.min(...PROFILE.map(p=>p.e)).toFixed(1) + ' m';
+  document.getElementById('pfMax').textContent = maxE.toFixed(1) + ' m';
+  document.getElementById('pfZoomReset').classList.toggle('visible', !!zoomRange);
+}
+
+// ---------------- Zoom (arrastar para selecionar um intervalo) ----------------
+profileChartEl.addEventListener('mousedown', e => {
+  if(e.target.classList && (e.target.classList.contains('pf-pt-hit') || e.target.classList.contains('pf-ls15-hit'))) return;
+  const rect = profileChartEl.getBoundingClientRect();
+  const px = e.clientX - rect.left;
+  if(px < PF_PAD.l || px > rect.width - PF_PAD.r) return;
+  pfDragStart = { px, rectWidth: rect.width, domain: pfCurrentDomain() };
+  const box = pfZoomBox();
+  box.style.left = px + 'px'; box.style.width = '0px'; box.style.display = 'block';
+  e.preventDefault();
+});
+window.addEventListener('mousemove', e => {
+  if(!pfDragStart) return;
+  const rect = profileChartEl.getBoundingClientRect();
+  const px = Math.min(Math.max(e.clientX - rect.left, PF_PAD.l), rect.width - PF_PAD.r);
+  const box = pfZoomBox();
+  const left = Math.min(pfDragStart.px, px), width = Math.abs(px - pfDragStart.px);
+  box.style.left = left + 'px'; box.style.width = width + 'px';
+});
+window.addEventListener('mouseup', e => {
+  if(!pfDragStart) return;
+  const rect = profileChartEl.getBoundingClientRect();
+  const px = Math.min(Math.max(e.clientX - rect.left, PF_PAD.l), rect.width - PF_PAD.r);
+  const box = profileChartEl.querySelector('.pf-zoom-box');
+  if(box) box.style.display = 'none';
+  const [a, b] = [pfDragStart.px, px].sort((m, n) => m - n);
+  if(b - a > 8){
+    const innerW = pfDragStart.rectWidth - PF_PAD.l - PF_PAD.r;
+    const [d0, d1] = pfDragStart.domain;
+    const distA = d0 + ((a - PF_PAD.l) / innerW) * (d1 - d0);
+    const distB = d0 + ((b - PF_PAD.l) / innerW) * (d1 - d0);
+    zoomRange = { min: distA, max: distB };
+    renderProfile();
+  }
+  pfDragStart = null;
+});
+profileChartEl.addEventListener('dblclick', () => {
+  if(zoomRange){ zoomRange = null; renderProfile(); }
+});
+document.getElementById('pfZoomReset').addEventListener('click', e => {
+  e.stopPropagation();
+  zoomRange = null;
+  renderProfile();
+});
+
+const PF_MIN_SPAN = 250; // metros - nao ampliar mais do que isto
+profileChartEl.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = profileChartEl.getBoundingClientRect();
+  const innerW = rect.width - PF_PAD.l - PF_PAD.r;
+  if(innerW <= 0) return;
+  const px = Math.min(Math.max(e.clientX - rect.left, PF_PAD.l), rect.width - PF_PAD.r);
+  const [d0, d1] = pfCurrentDomain();
+  const mouseDist = d0 + ((px - PF_PAD.l) / innerW) * (d1 - d0);
+  const factor = e.deltaY < 0 ? 0.82 : 1/0.82; // scroll para cima = ampliar
+  const [fullMin, fullMax] = pfFullExtent();
+  let newMin = mouseDist - (mouseDist - d0) * factor;
+  let newMax = mouseDist + (d1 - mouseDist) * factor;
+  let newSpan = newMax - newMin;
+  if(newSpan >= fullMax - fullMin){
+    zoomRange = null;
+    renderProfile();
+    return;
+  }
+  if(newSpan < PF_MIN_SPAN){
+    const mid = (newMin + newMax) / 2;
+    newMin = mid - PF_MIN_SPAN/2;
+    newMax = mid + PF_MIN_SPAN/2;
+    newSpan = PF_MIN_SPAN;
+  }
+  if(newMin < fullMin){ newMax += (fullMin - newMin); newMin = fullMin; }
+  if(newMax > fullMax){ newMin -= (newMax - fullMax); newMax = fullMax; }
+  newMin = Math.max(fullMin, newMin);
+  newMax = Math.min(fullMax, newMax);
+  zoomRange = { min:newMin, max:newMax };
+  renderProfile();
+}, { passive:false });
+
+profileHeader.addEventListener('click', () => {
+  profilePanel.classList.toggle('collapsed');
+});
+profilePanel.addEventListener('transitionend', e => {
+  if(e.propertyName === 'height' && !profilePanel.classList.contains('collapsed')) renderProfile();
+});
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if(!profilePanel.classList.contains('collapsed')) renderProfile(); }, 150);
+});
+
+// ---------------- Medir distancia ao longo do tracado ----------------
+// RouteGraph: o ROUTE vira um grafo (vertices = pontos GPS, arestas = troços entre
+// vertices consecutivos, ligando tambem extremos de segmentos a <=10 m). A distancia
+// entre dois pontos e o caminho mais curto POR ESSE GRAFO, ou seja, segue o tracado
+// e nunca corta caminho em linha reta. // <route-graph>
+const RouteGraph = (function(){
+  const EARTH_R = 6371008.8, BRIDGE_M = 10;
+  const nodes = [], adj = [], edges = [], nodeIdx = new Map();
+  function hav(a, b){
+    const r = Math.PI/180, f1 = a[0]*r, f2 = b[0]*r, dF = f2-f1, dL = (b[1]-a[1])*r;
+    const h = Math.sin(dF/2)**2 + Math.cos(f1)*Math.cos(f2)*Math.sin(dL/2)**2;
+    return 2*EARTH_R*Math.asin(Math.sqrt(h));
+  }
+  function nodeFor(pt){
+    const k = pt[0]+','+pt[1];
+    let i = nodeIdx.get(k);
+    if(i === undefined){ i = nodes.length; nodes.push([pt[0], pt[1]]); adj.push([]); nodeIdx.set(k, i); }
+    return i;
+  }
+  function addEdge(a, b){
+    if(a === b) return;
+    const id = edges.length;
+    edges.push({ a, b, len: hav(nodes[a], nodes[b]) });
+    adj[a].push(id); adj[b].push(id);
+  }
+  const ends = new Set();
+  ROUTE.forEach(seg => {
+    if(seg.length < 2) return;
+    let prev = nodeFor(seg[0]); ends.add(prev);
+    for(let i = 1; i < seg.length; i++){ const cur = nodeFor(seg[i]); addEdge(prev, cur); prev = cur; }
+    ends.add(prev);
+  });
+  const endList = Array.from(ends);
+  for(let i = 0; i < endList.length; i++){
+    for(let j = i+1; j < endList.length; j++){
+      if(hav(nodes[endList[i]], nodes[endList[j]]) <= BRIDGE_M) addEdge(endList[i], endList[j]);
+    }
+  }
+
+  const projCache = new Map();
+  function projFor(zoom, project){
+    let c = projCache.get(zoom);
+    if(!c){
+      if(projCache.size > 6) projCache.clear();
+      c = { x: new Float64Array(nodes.length), y: new Float64Array(nodes.length) };
+      for(let i = 0; i < nodes.length; i++){ const p = project(nodes[i][0], nodes[i][1], zoom); c.x[i] = p[0]; c.y[i] = p[1]; }
+      projCache.set(zoom, c);
+    }
+    return c;
+  }
+  // Ponto do traçado mais proximo de (px,py) (pixeis ao zoom dado). maxPx opcional.
+  function snap(px, py, zoom, project, maxPx){
+    const c = projFor(zoom, project);
+    let bestD2 = Infinity, bestE = -1, bestT = 0;
+    for(let e = 0; e < edges.length; e++){
+      const ed = edges[e], ax = c.x[ed.a], ay = c.y[ed.a], dx = c.x[ed.b]-ax, dy = c.y[ed.b]-ay;
+      const l2 = dx*dx + dy*dy;
+      let t = l2 ? ((px-ax)*dx + (py-ay)*dy)/l2 : 0;
+      t = t < 0 ? 0 : (t > 1 ? 1 : t);
+      const cx = ax + t*dx - px, cy = ay + t*dy - py, d2 = cx*cx + cy*cy;
+      if(d2 < bestD2){ bestD2 = d2; bestE = e; bestT = t; }
+    }
+    if(bestE < 0 || (maxPx != null && bestD2 > maxPx*maxPx)) return null;
+    const ed = edges[bestE], A = nodes[ed.a], B = nodes[ed.b];
+    return { edge: bestE, t: bestT, pos: [A[0] + bestT*(B[0]-A[0]), A[1] + bestT*(B[1]-A[1])] };
+  }
+  // Heap binario minimo (lazy deletion).
+  function Heap(){ this.d = []; this.n = []; }
+  Heap.prototype.push = function(dist, node){
+    const d = this.d, n = this.n; let i = d.length; d.push(dist); n.push(node);
+    while(i > 0){ const p = (i-1) >> 1; if(d[p] <= d[i]) break; [d[p], d[i]] = [d[i], d[p]]; [n[p], n[i]] = [n[i], n[p]]; i = p; }
+  };
+  Heap.prototype.pop = function(){
+    const d = this.d, n = this.n, rd = d[0], rn = n[0], ld = d.pop(), ln = n.pop();
+    if(d.length){
+      d[0] = ld; n[0] = ln; let i = 0;
+      for(;;){
+        const l = 2*i+1, r = l+1; let m = i;
+        if(l < d.length && d[l] < d[m]) m = l;
+        if(r < d.length && d[r] < d[m]) m = r;
+        if(m === i) break;
+        [d[m], d[i]] = [d[i], d[m]]; [n[m], n[i]] = [n[i], n[m]]; i = m;
+      }
+    }
+    return [rd, rn];
+  };
+  // Arvore de distancias minimas a partir de um ponto do traçado.
+  function tree(from){
+    const N = nodes.length, dist = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1);
+    const h = new Heap(), ed = edges[from.edge];
+    dist[ed.a] = from.t * ed.len; dist[ed.b] = (1 - from.t) * ed.len;
+    h.push(dist[ed.a], ed.a); h.push(dist[ed.b], ed.b);
+    while(h.d.length){
+      const [d, u] = h.pop();
+      if(d > dist[u]) continue;
+      const list = adj[u];
+      for(let k = 0; k < list.length; k++){
+        const e = edges[list[k]], v = e.a === u ? e.b : e.a, nd = d + e.len;
+        if(nd < dist[v]){ dist[v] = nd; prev[v] = u; h.push(nd, v); }
+      }
+    }
+    return { from, dist, prev };
+  }
+  // Distancia (m) e caminho [[lat,lon],...] entre a origem da arvore e o ponto `to`.
+  function query(tr, to){
+    const f = tr.from, ed = edges[to.edge];
+    let best = Infinity, mode = null;
+    if(f.edge === to.edge){ best = Math.abs(f.t - to.t) * ed.len; mode = 'same'; }
+    const viaA = tr.dist[ed.a] + to.t * ed.len, viaB = tr.dist[ed.b] + (1 - to.t) * ed.len;
+    if(viaA < best){ best = viaA; mode = 'a'; }
+    if(viaB < best){ best = viaB; mode = 'b'; }
+    if(!isFinite(best)) return null;
+    if(mode === 'same') return { meters: best, path: [f.pos, to.pos] };
+    let n = mode === 'a' ? ed.a : ed.b;
+    const rev = [to.pos, nodes[n]];
+    while(tr.prev[n] !== -1){ n = tr.prev[n]; rev.push(nodes[n]); }
+    rev.push(f.pos);
+    return { meters: best, path: rev.reverse() };
+  }
+  // Caminho principal: do inicio do tracado ao ponto mais distante, com distancias acumuladas (m).
+  let mainCache = null;
+  function mainPath(){
+    if(mainCache) return mainCache;
+    const start = edges[0].a;
+    const tr = tree({ edge: 0, t: 0, pos: nodes[start] });
+    let far = start;
+    for(let i = 0; i < tr.dist.length; i++){ if(isFinite(tr.dist[i]) && tr.dist[i] > tr.dist[far]) far = i; }
+    const rev = [far]; let n = far;
+    while(tr.prev[n] !== -1){ n = tr.prev[n]; rev.push(n); }
+    if(n !== start) rev.push(start);
+    const pts = rev.reverse().map(i => nodes[i]), cum = [0];
+    for(let i = 1; i < pts.length; i++) cum.push(cum[i-1] + hav(pts[i-1], pts[i]));
+    mainCache = { pts, cum };
+    return mainCache;
+  }
+  return { snap, tree, query, mainPath, nodeCount: () => nodes.length, edgeCount: () => edges.length };
+})();
+// </route-graph>
+
+const Measure = (function(){
+  const MAX_SNAP_PX = 32;
+  const btn = document.getElementById('measureBtn'), panel = document.getElementById('measurePanel');
+  const hintEl = document.getElementById('mpHint'), legsEl = document.getElementById('mpLegs');
+  const totalBox = document.getElementById('mpTotal'), totalKmEl = document.getElementById('mpTotalKm'), totalMEl = document.getElementById('mpTotalM'), totalZEl = document.getElementById('mpTotalZ');
+  const undoBtn = document.getElementById('mpUndo'), clearBtn = document.getElementById('mpClear'), copyBtn = document.getElementById('mpCopy'), csvBtn = document.getElementById('mpCsv');
+  const layer = L.layerGroup();
+  const project = (lat, lon, z) => { const p = map.project([lat, lon], z); return [p.x, p.y]; };
+  const HINT_START = 'Clica no traçado (ou num ponto) para marcar o início. A distância segue o traçado do nivelamento.';
+  const HINT_NEXT = 'Clica para adicionar mais pontos (troços seguidos).';
+
+  let active = false, pts = [], legs = [], total = 0, tree = null, hintTimer = null;
+  let ghost = null, previewLine = null, rafPending = null;
+
+  const groupInt = s => String(s).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0');
+  const fmt1 = (v, d) => v.toFixed(d).replace('.', ',');
+  const sgn = v => (v > 0.05 ? '+' : (v < -0.05 ? '\u2212' : '')) + fmt1(Math.abs(v), 1);
+  function fmtShort(m){ return m < 1000 ? Math.round(m) + ' m' : (m/1000).toFixed(2).replace('.', ',') + ' km'; }
+  function pinLabel(i){ return i < 26 ? String.fromCharCode(65 + i) : String(i + 1); }
+  function setHint(text, warn){
+    hintEl.textContent = text; hintEl.classList.toggle('warn', !!warn);
+    clearTimeout(hintTimer);
+    if(warn) hintTimer = setTimeout(() => setHint(pts.length ? HINT_NEXT : HINT_START), 3500);
+  }
+
+  function snapAt(latlng, maxPx){
+    const z = map.getZoom(), p = map.project(latlng, z);
+    return RouteGraph.snap(p.x, p.y, z, project, maxPx);
+  }
+  // Cota aproximada: interpolada ao longo do perfil entre marcos (a mesma do grafico).
+  function profileAt(pos){ return projectDistanceAlongProfile(pos[0], pos[1]); }
+  // Subida e descida acumuladas entre dois pontos do perfil (no sentido a -> b).
+  function gainLoss(a, b){
+    const lo = Math.min(a.dist, b.dist), hi = Math.max(a.dist, b.dist);
+    let mid = PROFILE.filter(p => p.dist > lo && p.dist < hi);
+    if(a.dist > b.dist) mid = mid.slice().reverse();
+    const seq = [a.elev].concat(mid.map(p => p.e), [b.elev]);
+    let up = 0, down = 0;
+    for(let i = 1; i < seq.length; i++){ const d = seq[i] - seq[i-1]; if(d > 0) up += d; else down -= d; }
+    return { up, down };
+  }
+  function totals(){
+    let up = 0, down = 0, ok = legs.length > 0;
+    legs.forEach(l => { if(l.up == null) ok = false; else { up += l.up; down += l.down; } });
+    const first = pts[0], last = pts[pts.length-1];
+    const net = (first && last && first.prof && last.prof) ? last.prof.elev - first.prof.elev : null;
+    return { up, down, net, ok: ok && net != null };
+  }
+  function zText(t){
+    return t.ok ? 'Desnível \u2248 ' + sgn(t.net) + ' m (sobe ' + Math.round(t.up) + ' m \u00B7 desce ' + Math.round(t.down) + ' m)' : '';
+  }
+
+  function addSnapped(sn){
+    const prevPt = pts.length ? pts[pts.length-1] : null;
+    let leg = null;
+    if(tree){
+      leg = RouteGraph.query(tree, sn);
+      if(!leg){ setHint('Não há ligação pelo traçado entre estes dois pontos.', true); return; }
+    }
+    const prof = profileAt(sn.pos);
+    if(leg){
+      const both = prevPt && prevPt.prof && prof;
+      leg.dz = both ? prof.elev - prevPt.prof.elev : null;
+      const gl = both ? gainLoss(prevPt.prof, prof) : null;
+      leg.up = gl ? gl.up : null; leg.down = gl ? gl.down : null;
+    }
+    const idx = pts.length;
+    const marker = L.marker(sn.pos, {
+      icon: L.divIcon({ className:'', html:'<div class="msr-pin' + (idx === 0 ? ' first' : '') + '">' + pinLabel(idx) + '</div>', iconSize:[24,24], iconAnchor:[12,12] }),
+      interactive:false, keyboard:false, zIndexOffset:2000
+    }).addTo(layer);
+    let line = null, casing = null;
+    if(leg){
+      total += leg.meters;
+      casing = L.polyline(leg.path, { color:'#fff', weight:10, opacity:.9, lineCap:'round', lineJoin:'round', interactive:false }).addTo(layer);
+      line = L.polyline(leg.path, { color:'#1971C2', weight:6, opacity:1, lineCap:'round', lineJoin:'round', interactive:false }).addTo(layer);
+    }
+    marker.bindTooltip(idx === 0 ? 'Início' : fmtShort(total), { permanent:true, direction:'top', offset:[0,-13], className:'msr-tip', interactive:false });
+    pts.push({ sn, marker, line, casing, prof });
+    if(leg) legs.push(leg);
+    tree = RouteGraph.tree(sn);
+    render();
+  }
+  function addPoint(latlng){
+    if(!active) return;
+    const sn = snapAt(latlng, MAX_SNAP_PX);
+    if(!sn){ setHint('Clica mais perto do traçado (linha vermelha).', true); return; }
+    addSnapped(sn);
+  }
+  // Ponto vindo de um marcador (encaixa sempre no ponto do traçado mais proximo).
+  function addPointFromMarker(latlng){
+    if(!active) return;
+    const sn = snapAt(latlng, null);
+    if(sn) addSnapped(sn);
+  }
+  function undo(){
+    if(!pts.length) return;
+    const last = pts.pop();
+    last.marker.unbindTooltip(); layer.removeLayer(last.marker);
+    if(last.line){
+      layer.removeLayer(last.casing); layer.removeLayer(last.line);
+      total -= legs.pop().meters;
+    }
+    if(!pts.length){ total = 0; tree = null; } else { tree = RouteGraph.tree(pts[pts.length-1].sn); }
+    hidePreview(); render();
+  }
+  function clear(){
+    pts.forEach(p => p.marker.unbindTooltip());
+    layer.clearLayers(); pts = []; legs = []; total = 0; tree = null;
+    hidePreview(); render();
+  }
+  function syncProfile(){
+    measureProfileMarks = pts.map((p, i) => p.prof ? { dist: p.prof.dist, label: pinLabel(i) } : null).filter(Boolean);
+    if(!profilePanel.classList.contains('collapsed')) renderProfile();
+  }
+  function render(){
+    legsEl.innerHTML = legs.map((lg, i) =>
+      '<li><span class="lg">' + pinLabel(i) + ' &rarr; ' + pinLabel(i+1) + '</span><span class="lv">' + groupInt(Math.round(lg.meters)) + ' m' +
+      (lg.dz != null ? '<small>' + sgn(lg.dz) + ' m</small>' : '') + '</span></li>').join('');
+    const many = pts.length >= 2;
+    panel.classList.toggle('one-leg', legs.length === 1); panel.classList.toggle('has-total', many);
+    totalBox.classList.toggle('show', many);
+    if(many){
+      totalKmEl.textContent = fmtShort(total); totalMEl.textContent = groupInt(Math.round(total)) + ' m';
+      totalZEl.textContent = zText(totals());
+    }
+    undoBtn.disabled = !pts.length; clearBtn.disabled = !pts.length;
+    copyBtn.disabled = !legs.length; csvBtn.disabled = !legs.length;
+    setHint(pts.length ? HINT_NEXT : HINT_START);
+    syncProfile();
+  }
+
+  // ---- copiar / exportar ----
+  function buildText(){
+    const out = ['Medição ao longo do traçado do nivelamento'];
+    legs.forEach((lg, i) => out.push(pinLabel(i) + ' \u2192 ' + pinLabel(i+1) + ': ' + groupInt(Math.round(lg.meters)) + ' m' + (lg.dz != null ? ' (desnível ' + sgn(lg.dz) + ' m)' : '')));
+    const z = zText(totals());
+    out.push('Total: ' + fmtShort(total) + ' (' + groupInt(Math.round(total)) + ' m)' + (z ? ' \u00B7 ' + z : ''));
+    if(z) out.push('Cotas aproximadas, interpoladas entre marcos.');
+    return out.join('\n');
+  }
+  function buildCsv(){
+    const n = (v, d) => v == null ? '' : v.toFixed(d).replace('.', ',');
+    const t = totals();
+    const rows = [['Ponto', 'Latitude', 'Longitude', 'Cota aprox. (m)', 'Distancia acumulada (m)']];
+    let acc = 0;
+    pts.forEach((p, i) => { if(i > 0) acc += legs[i-1].meters; rows.push([pinLabel(i), n(p.sn.pos[0], 6), n(p.sn.pos[1], 6), n(p.prof ? p.prof.elev : null, 2), n(acc, 1)]); });
+    rows.push([]);
+    rows.push(['Troco', 'De', 'Para', 'Distancia (m)', 'Desnivel (m)', 'Subida (m)', 'Descida (m)']);
+    legs.forEach((lg, i) => rows.push([pinLabel(i) + '-' + pinLabel(i+1), pinLabel(i), pinLabel(i+1), n(lg.meters, 1), n(lg.dz, 2), n(lg.up, 2), n(lg.down, 2)]));
+    rows.push(['Total', '', '', n(total, 1), n(t.ok ? t.net : null, 2), n(t.ok ? t.up : null, 2), n(t.ok ? t.down : null, 2)]);
+    return '\uFEFF' + rows.map(r => r.join(';')).join('\r\n');
+  }
+  function copyText(text){
+    if(navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+    return new Promise((res, rej) => {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      let ok = false; try { ok = document.execCommand('copy'); } catch(e) {}
+      ta.remove(); ok ? res() : rej();
+    });
+  }
+  function flash(b, text){ const old = b.textContent; b.textContent = text; setTimeout(() => { b.textContent = old; }, 1600); }
+
+  // ---- pre-visualizacao enquanto o rato se move (ponto encaixado + troço) ----
+  function hidePreview(){
+    if(ghost){ ghost.unbindTooltip(); ghost.remove(); ghost = null; }
+    if(previewLine){ previewLine.remove(); previewLine = null; }
+  }
+  function onMove(e){
+    if(!active || rafPending) return;
+    const ll = e.latlng;
+    rafPending = requestAnimationFrame(() => {
+      rafPending = null;
+      if(!active) return;
+      const sn = snapAt(ll, MAX_SNAP_PX);
+      if(!sn){ hidePreview(); return; }
+      if(!ghost){
+        ghost = L.marker(sn.pos, { icon: L.divIcon({ className:'', html:'<div class="msr-ghost"></div>', iconSize:[14,14], iconAnchor:[7,7] }), interactive:false, keyboard:false, zIndexOffset:1500 });
+        ghost.bindTooltip('', { permanent:true, direction:'right', offset:[10,0], className:'msr-tip', interactive:false });
+      }
+      ghost.setLatLng(sn.pos); if(!map.hasLayer(ghost)) ghost.addTo(map);
+      let txt = 'Marcar início';
+      if(tree){
+        const r = RouteGraph.query(tree, sn);
+        if(r){
+          txt = '+' + fmtShort(r.meters) + ' \u00B7 ' + fmtShort(total + r.meters);
+          if(!previewLine) previewLine = L.polyline(r.path, { color:'#1971C2', weight:4, opacity:.9, dashArray:'6,8', interactive:false });
+          else previewLine.setLatLngs(r.path);
+          if(!map.hasLayer(previewLine)) previewLine.addTo(map);
+        } else { txt = 'sem ligação'; if(previewLine) previewLine.remove(); }
+      }
+      ghost.setTooltipContent(txt);
+    });
+  }
+
+  function setActive(on){
+    active = on;
+    btn.classList.toggle('active', on); btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    panel.classList.toggle('open', on);
+    map.getContainer().classList.toggle('measuring', on);
+    if(on){
+      if(typeof ProgressPlayer !== 'undefined' && ProgressPlayer.isActive()) ProgressPlayer.close();
+      layer.addTo(map); map.doubleClickZoom.disable(); render();
+    } else {
+      hidePreview(); clear(); map.removeLayer(layer); map.doubleClickZoom.enable();
+    }
+  }
+  btn.addEventListener('click', () => setActive(!active));
+  document.getElementById('mpClose').addEventListener('click', () => setActive(false));
+  undoBtn.addEventListener('click', undo);
+  clearBtn.addEventListener('click', clear);
+  copyBtn.addEventListener('click', () => {
+    if(!legs.length) return;
+    copyText(buildText()).then(() => flash(copyBtn, 'Copiado \u2713'), () => flash(copyBtn, 'Falhou'));
+  });
+  csvBtn.addEventListener('click', () => {
+    if(!legs.length) return;
+    const blob = new Blob([buildCsv()], { type:'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'medicao_tracado.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+  document.addEventListener('keydown', e => { if(active && e.key === 'Escape' && !lightboxOverlay.classList.contains('open')) setActive(false); });
+  map.on('click', e => addPoint(e.latlng));
+  map.on('mousemove', onMove);
+  map.on('mouseout', hidePreview);
+  return { isActive: () => active, addPoint: addPointFromMarker };
+})();
+
+// ---------------- Estado das linhas no tracado ----------------
+// linhas_mapa.js (gerado pelo robo de atualizacao) traz, por linha, o estado, os
+// resultados e o troço do tracado (metros desde o inicio: a..b). Aqui o tracado e
+// pintado por estado e cada troço abre o resumo da linha.
+const Linhas = (function(){
+  const COLORS = { aprovada:'#2F9E44', reprovada:'#E03131', curso:'#F59F00' };
+  const layer = L.layerGroup();
+  const toggle = document.getElementById('linhasToggle'), staleNote = document.getElementById('staleNote');
+  const STALE_MIN = 30;
+  let data = null;
+  const polys = {}, byName = {};
+
+  const num = (v, d) => (v == null || isNaN(v)) ? '\u2014' : Number(v).toFixed(d).replace('.', ',');
+  const res = ok => ok ? '<span style="color:#2B8A3E;font-weight:600">Aprovado</span>' : '<span style="color:#C92A2A;font-weight:600">Reprovado</span>';
+  function statusOf(l){
+    if(!l.concluida) return 'curso';
+    return l.aprov_galileo ? 'aprovada' : 'reprovada';   // a cor segue o criterio da Galileo; o Crit.2 fica no popup
+  }
+  function labelOf(l, st){
+    if(st === 'curso') return 'Em curso';
+    if(st === 'aprovada') return 'Concluída \u00B7 aprovada';
+    return 'Reprovada';
+  }
+  function fmtTime(iso){
+    if(!iso) return '\u2014';
+    const d = new Date(iso);
+    return isNaN(d) ? '\u2014' : d.toLocaleString('pt-PT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+  }
+  function popupLinha(l, st){
+    return `
+    <div class="geoide-popup">
+      <div class="popup-head"><span class="tag" style="--c:${COLORS[st]}">${labelOf(l, st)}</span></div>
+      <div style="padding:0 16px 10px 16px;"><h3>${l.linha}</h3></div>
+      <dl class="popup-data">
+        <div class="row"><dt>Comp. nivelamento</dt><dd>${num(l.comp_niv, 1)} m</dd></div>
+        <div class="row"><dt>EF / Toll (mm)</dt><dd>${num(l.ef, 2)} / ${num(l.toll, 2)}</dd></div>
+        <div class="row"><dt>Resultado</dt><dd>${res(l.aprov_galileo)}</dd></div>
+        <div class="row"><dt>Tol. técnica (mm)</dt><dd>${num(l.tol_tecnica, 2)}</dd></div>
+        <div class="row"><dt>Resultado (Crit.2)</dt><dd>${res(l.aprov_tec)}</dd></div>
+        ${l.aprov_tec ? '' : '<div class="row"><dt style="color:#C92A2A;font-weight:600">Reprova no Crit.2</dt><dd style="color:#C92A2A">EF &gt; tol. técnica</dd></div>'}
+        <div class="row"><dt>Rendimento</dt><dd>${num(l.rendimento, 0)} m/h</dd></div>
+        <div class="row"><dt>Estações</dt><dd>${l.estacoes}</dd></div>
+        <div class="row"><dt>Início \u2192 fim</dt><dd>${fmtTime(l.inicio)} \u2192 ${fmtTime(l.fim)}</dd></div>
+      </dl>
+      ${l.aprox ? '<div style="margin:0 16px 10px;font-size:11px;color:var(--ink-soft);">Troço aproximado: esta linha ainda não tem posição GPS própria.</div>' : ''}
+      <a class="popup-link" href="${SECAO.progresso}#${l.linha}">Abrir o resumo completo da linha &rarr;</a>
+    </div>`;
+  }
+
+  // Sub-caminho do caminho principal entre a e b (metros desde o inicio).
+  function sliceMain(a, b){
+    const mp = RouteGraph.mainPath(), pts = mp.pts, cum = mp.cum, total = cum[cum.length-1];
+    a = Math.max(0, Math.min(total, a)); b = Math.max(0, Math.min(total, b));
+    if(b - a < 1) return null;
+    const idx = m => { let lo = 0, hi = cum.length - 1; while(lo < hi){ const mid = (lo + hi + 1) >> 1; if(cum[mid] <= m) lo = mid; else hi = mid - 1; } return lo; };
+    const at = m => {
+      const i = idx(m);
+      if(i >= pts.length - 1) return pts[pts.length-1];
+      const f = (m - cum[i]) / ((cum[i+1] - cum[i]) || 1);
+      return [pts[i][0] + f*(pts[i+1][0]-pts[i][0]), pts[i][1] + f*(pts[i+1][1]-pts[i][1])];
+    };
+    const ia = idx(a), ib = idx(b), out = [at(a)];
+    for(let i = ia + 1; i <= ib; i++) out.push(pts[i]);
+    out.push(at(b));
+    return out;
+  }
+
+  // Ponto do caminho principal a m metros do inicio.
+  function pointAt(m){
+    const mp = RouteGraph.mainPath(), pts = mp.pts, cum = mp.cum;
+    m = Math.max(0, Math.min(cum[cum.length-1], m));
+    let lo = 0, hi = cum.length - 1;
+    while(lo < hi){ const mid = (lo + hi + 1) >> 1; if(cum[mid] <= m) lo = mid; else hi = mid - 1; }
+    if(lo >= pts.length - 1) return pts[pts.length-1];
+    const f = (m - cum[lo]) / ((cum[lo+1] - cum[lo]) || 1);
+    return [pts[lo][0] + f*(pts[lo+1][0]-pts[lo][0]), pts[lo][1] + f*(pts[lo+1][1]-pts[lo][1])];
+  }
+  // Distancia no eixo do perfil longitudinal correspondente a m metros do tracado.
+  function profDist(m){
+    const p = pointAt(m), pp = projectDistanceAlongProfile(p[0], p[1]);
+    return pp ? pp.dist : null;
+  }
+  // Troços coloridos da linha do perfil (mesmas cores e estados do mapa).
+  function buildProfileSegs(){
+    profileLineSegs = [];
+    if(data && toggle.checked){
+      let run = 0;
+      data.linhas.filter(l => l.b - l.a >= 1).sort((p, q) => p.a - q.a).forEach(l => {
+        const d0 = profDist(l.a), d1 = profDist(l.b);
+        if(d0 == null || d1 == null) return;
+        const dA = Math.max(d0, run), dB = Math.max(d1, dA);
+        run = dB;
+        if(dB - dA > 0.5) profileLineSegs.push({ linha:l.linha, color:COLORS[statusOf(l)], dA, dB });
+      });
+    }
+    if(!profilePanel.classList.contains('collapsed')) renderProfile();
+  }
+  function tooltipText(name){
+    const l = byName[name];
+    if(!l) return name;
+    return l.linha + ' \u00B7 ' + labelOf(l, statusOf(l)) + (l.aprov_tec ? '' : ' \u00B7 reprova Crit.2');
+  }
+  // Salta para o troço da linha no mapa e abre o respetivo popup.
+  function open(name){
+    const pl = polys[name], l = byName[name];
+    if(!pl || !l) return;
+    if(!map.hasLayer(layer)){ toggle.checked = true; layer.addTo(map); }
+    const seg = sliceMain(l.a, l.b);
+    if(!seg) return;
+    map.fitBounds(L.latLngBounds(seg), { padding:[60, 60], maxZoom:17, animate:false });
+    const mid = seg[Math.floor(seg.length / 2)];
+    pl.openPopup(L.latLng(mid[0], mid[1]));
+  }
+
+  function build(){
+    layer.clearLayers();
+    Object.keys(polys).forEach(k => { delete polys[k]; });
+    data.linhas.forEach(l => {
+      const seg = sliceMain(l.a, l.b);
+      if(!seg) return;
+      const st = statusOf(l);
+      L.polyline(seg, { color:'#fff', weight:10, opacity:.85, lineCap:'butt', lineJoin:'round', interactive:false }).addTo(layer);
+      const pl = L.polyline(seg, { color:COLORS[st], weight:6, opacity:.97, lineCap:'butt', lineJoin:'round' }).addTo(layer);
+      polys[l.linha] = pl; byName[l.linha] = l;
+      pl.bindPopup(popupLinha(l, st), { className:'geoide-popup', maxWidth:320, minWidth:296 });
+      pl.bindTooltip(l.linha + ' \u00B7 ' + labelOf(l, st), { sticky:true, direction:'top', className:'msr-tip' });
+      pl.on('mouseover', () => pl.setStyle({ weight:8 }));
+      pl.on('mouseout', () => pl.setStyle({ weight:6 }));
+      pl.on('click', () => { if(Measure.isActive()) pl.closePopup(); });
+    });
+    if(toggle.checked && !map.hasLayer(layer)) layer.addTo(map);
+    buildProfileSegs();
+  }
+
+  function updateStale(){
+    if(!data || !data.gerado){ staleNote.classList.remove('show'); return; }
+    const min = Math.round((Date.now() - Date.parse(data.gerado)) / 60000);
+    if(isNaN(min) || min <= STALE_MIN){ staleNote.classList.remove('show'); return; }
+    const t = min < 60 ? min + ' min' : (min < 2880 ? Math.floor(min/60) + ' h' : Math.floor(min/1440) + ' dias');
+    staleNote.textContent = '\u26A0 Dados desatualizados: última atualização há ' + t + '.';
+    staleNote.classList.add('show');
+  }
+
+  function load(){
+    const sc = document.createElement('script');
+    sc.src = SECAO.linhas + '?t=' + Date.now();   // evita a cache do navegador/GitHub Pages
+    sc.onload = () => {
+      sc.remove();
+      if(window.LINHAS_MAPA && Array.isArray(window.LINHAS_MAPA.linhas)){ data = window.LINHAS_MAPA; build(); updateStale(); }
+    };
+    sc.onerror = () => sc.remove();
+    document.head.appendChild(sc);
+  }
+
+  toggle.addEventListener('change', e => {
+    if(e.target.checked){ if(data) layer.addTo(map); } else map.removeLayer(layer);
+    buildProfileSegs();
+  });
+  load();
+  setInterval(load, 5 * 60 * 1000);
+  setInterval(updateStale, 60 * 1000);
+  return { statusOf, sliceMain, open, tooltipText, linhas: () => data, isShown: () => toggle.checked, setShown: on => { toggle.checked = on; toggle.dispatchEvent(new Event('change')); } };
+})();
+
+// ---------------- Progresso no tempo (animacao) ----------------
+// Usa a hora de fim de cada linha (linhas_mapa.js) para saber, dia a dia, ate onde
+// o tracado ja estava nivelado - e desenha esse troço a crescer sobre o mapa.
+const ProgressPlayer = (function(){
+  const btn = document.getElementById('progressBtn'), panel = document.getElementById('progressPanel');
+  const dateEl = document.getElementById('progressDate'), kmEl = document.getElementById('progressKm');
+  const slider = document.getElementById('progressSlider'), playBtn = document.getElementById('progressPlay'), speedSel = document.getElementById('progressSpeed');
+  const layer = L.layerGroup();
+  let days = null, totalM = 0, timer = null, wasLinhasShown = null, tip = null;
+
+  function buildDays(){
+    const lm = Linhas.linhas();
+    if(!lm || !lm.linhas) return null;
+    const items = lm.linhas
+      .filter(l => l.fim && l.b > l.a)
+      .map(l => ({ t: new Date(l.fim), a: l.a, b: l.b }))
+      .sort((a, b) => a.t - b.t);
+    if(!items.length) return null;
+    // Troços ja nivelados ate ao fim de cada dia (a uniao dos troços das linhas ate la): o
+    // trabalho pode ter varias frentes em simultaneo (ex: Ribeira Brava), por isso nao e so "ate onde chegou".
+    const done = [];
+    const byDay = new Map();
+    items.forEach(it => {
+      done.push([it.a, it.b]);
+      const key = it.t.toISOString().slice(0, 10);
+      const ivs = mergeIntervals(done);
+      byDay.set(key, { key, t: it.t, ivs, doneM: ivs.reduce((s, iv) => s + (iv[1] - iv[0]), 0), tipA: it.a, tipB: it.b, nLinhas: done.length, dayIvs: ((byDay.get(key) || { dayIvs: [] }).dayIvs).concat([[it.a, it.b]]) });
+    });
+    return Array.from(byDay.values()).sort((a, b) => a.t - b.t);
+  }
+  function mergeIntervals(list){
+    const s = list.map(x => [x[0], x[1]]).sort((p, q) => p[0] - q[0]);
+    const out = [];
+    s.forEach(iv => {
+      const last = out[out.length - 1];
+      if(last && iv[0] <= last[1] + 1) last[1] = Math.max(last[1], iv[1]); else out.push(iv);
+    });
+    return out;
+  }
+  function fmtDate(d){ return d.toLocaleDateString('pt-PT', { day:'2-digit', month:'2-digit', year:'numeric' }); }
+  function fmtKm(m){ return (m / 1000).toFixed(2).replace('.', ',') + ' km'; }
+
+  function ensureReady(){
+    if(days) return true;
+    days = buildDays();
+    if(!days) return false;
+    const mp = RouteGraph.mainPath();
+    totalM = mp.cum[mp.cum.length - 1];
+    slider.max = days.length - 1;
+    slider.disabled = false; playBtn.disabled = false;
+    render(days.length - 1);
+    return true;
+  }
+
+  function render(idx){
+    slider.value = idx;
+    const day = days[idx];
+    dateEl.textContent = fmtDate(day.t);
+    kmEl.innerHTML = `<b>${fmtKm(day.doneM)}</b> de ${fmtKm(totalM)} nivelados`;
+    updateHud(day);
+    layer.clearLayers();
+    day.ivs.forEach(iv => {
+      const s = Linhas.sliceMain(iv[0], iv[1]);
+      if(!s) return;
+      L.polyline(s, { color:'#fff', weight:11, opacity:.9, lineCap:'round', lineJoin:'round', interactive:false }).addTo(layer);
+      L.polyline(s, { color:'var(--gold-dark)', weight:7, opacity:.95, lineCap:'round', lineJoin:'round', interactive:false }).addTo(layer);
+    });
+    const seg = Linhas.sliceMain(day.tipA, day.tipB);
+    if(!seg) return;
+    const tipPos = seg[seg.length - 1];
+    if(!tip){
+      tip = L.marker(tipPos, { icon: L.divIcon({ className:'', html:'<div class="msr-ghost" style="border-color:var(--gold-dark)"></div>', iconSize:[14,14], iconAnchor:[7,7] }), interactive:false, keyboard:false, zIndexOffset:1800 });
+      tip.bindTooltip('', { permanent:true, direction:'right', offset:[10,0], className:'pp-tip', interactive:false });
+    }
+    tip.setLatLng(tipPos); tip.setTooltipContent(fmtDate(day.t));
+    if(!layer.hasLayer(tip)) tip.addTo(layer);
+    if(replay.on) followCamera(day);
+  }
+
+  // ---- Modo replay (apresentacao): HUD grande, camara a seguir a frente de trabalho, reproducao automatica ----
+  const replay = { on: false, kmShown: 0, kmAnim: null };
+  const hud = document.getElementById('replayHud');
+  function updateHud(day){
+    if(!replay.on) return;
+    document.getElementById('rhDate').textContent = fmtDate(day.t);
+    const pct = totalM ? Math.min(100, 100 * day.doneM / totalM) : 0;
+    document.getElementById('rhFill').style.width = pct + '%';
+    document.getElementById('rhOf').textContent = 'de ' + fmtKm(totalM).replace(' km', '') + ' km (' + pct.toFixed(0) + '%)';
+    document.getElementById('rhLine').textContent = day.nLinhas + (day.nLinhas === 1 ? ' linha nivelada' : ' linhas niveladas');
+    const from = replay.kmShown, to = day.doneM / 1000, t0 = performance.now(), el = document.getElementById('rhKm');
+    if(replay.kmAnim) cancelAnimationFrame(replay.kmAnim);
+    (function step(now){
+      const k = Math.min(1, (now - t0) / 1000), e = 1 - Math.pow(1 - k, 3);
+      replay.kmShown = from + (to - from) * e;
+      el.textContent = replay.kmShown.toFixed(2).replace('.', ',');
+      if(k < 1) replay.kmAnim = requestAnimationFrame(step);
+    })(t0);
+  }
+  function followCamera(day){
+    const pts = [];
+    day.dayIvs.forEach(iv => { const s = Linhas.sliceMain(iv[0], iv[1]); if(s) s.forEach(q => pts.push(q)); });
+    if(!pts.length) return;
+    try { map.flyToBounds(L.latLngBounds(pts), { maxZoom: 14, padding: [110, 110], duration: 1.1 }); } catch(e) {}
+  }
+  function startReplay(){
+    document.documentElement.classList.add('replay-mode');
+    replay.on = true; replay.kmShown = 0;
+    hud.hidden = false;
+    document.getElementById('rhTitle').textContent = 'Replay do avanço · ' + (typeof SECAO !== 'undefined' ? SECAO.curto : '');
+    setTimeout(() => map.invalidateSize(), 60);
+    let tries = 0;
+    (function wait(){
+      if(ensureReady()){
+        if(wasLinhasShown === null) wasLinhasShown = Linhas.isShown();
+        if(Linhas.isShown()) Linhas.setShown(false);
+        layer.addTo(map);
+        map.fitBounds(L.latLngBounds(RouteGraph.mainPath().pts), { padding: [60, 60] });
+        render(0);
+        setTimeout(play, 1500);
+      } else if(++tries < 60){ setTimeout(wait, 300); }
+      else { document.getElementById('rhDate').textContent = 'Sem dados suficientes ainda'; }
+    })();
+  }
+  function exitReplay(){
+    const u = new URL(location.href); u.searchParams.delete('replay'); location.href = u.toString();
+  }
+  document.getElementById('rhExit').addEventListener('click', exitReplay);
+  document.getElementById('rhRepeat').addEventListener('click', () => { document.getElementById('rhRepeat').hidden = true; replay.kmShown = 0; render(0); setTimeout(play, 900); });
+
+  function stop(){
+    if(timer){ clearInterval(timer); timer = null; }
+    playBtn.classList.remove('playing'); playBtn.innerHTML = '&#9654; Reproduzir';
+  }
+  function play(){
+    if(+slider.value >= +slider.max){ render(0); }
+    playBtn.classList.add('playing'); playBtn.innerHTML = '&#10074;&#10074; Pausar';
+    timer = setInterval(() => {
+      const next = +slider.value + 1;
+      if(next > +slider.max){ stop(); if(replay.on) document.getElementById('rhRepeat').hidden = false; return; }
+      render(next);
+    }, replay.on ? 1500 : +speedSel.value);
+  }
+
+  function open(){
+    if(Measure.isActive()) document.getElementById('measureBtn').click();
+    btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true'); panel.classList.add('open');
+    if(!ensureReady()){ dateEl.textContent = 'Sem dados suficientes ainda'; return; }
+    if(wasLinhasShown === null) wasLinhasShown = Linhas.isShown();
+    if(Linhas.isShown()) Linhas.setShown(false);
+    layer.addTo(map);
+  }
+  function close(){
+    stop();
+    btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); panel.classList.remove('open');
+    map.removeLayer(layer);
+    if(wasLinhasShown){ Linhas.setShown(true); }
+    wasLinhasShown = null;
+  }
+
+  btn.addEventListener('click', () => { panel.classList.contains('open') ? close() : open(); });
+  document.getElementById('progressClose').addEventListener('click', close);
+  slider.addEventListener('input', () => { stop(); render(+slider.value); });
+  playBtn.addEventListener('click', () => { timer ? stop() : play(); });
+  speedSel.addEventListener('change', () => { if(timer){ stop(); play(); } });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape' && panel.classList.contains('open') && !lightboxOverlay.classList.contains('open')) close(); });
+  if(/[?&]replay=1/.test(location.search)) startReplay();
+  return { isActive: () => panel.classList.contains('open'), close };
+})();
+
+// ---------------- Codigo QR ----------------
+(function qrTool(){
+  const fab = document.getElementById('qrFab'), overlay = document.getElementById('qrOverlay');
+  const img = document.getElementById('qrImg'), urlEl = document.getElementById('qrUrl'), copyBtn = document.getElementById('qrCopyBtn');
+  function open(){
+    const url = location.href.split('#')[0].split('?')[0];
+    urlEl.textContent = url;
+    if(typeof qrcode === 'function'){
+      const qr = qrcode(0, 'M');
+      qr.addData(url);
+      qr.make();
+      img.src = qr.createDataURL(8, 2);
+    }
+    overlay.classList.add('open');
+  }
+  function close(){ overlay.classList.remove('open'); }
+  fab.addEventListener('click', open);
+  document.getElementById('qrClose').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if(e.target === overlay) close(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape' && overlay.classList.contains('open')) close(); });
+  copyBtn.addEventListener('click', () => {
+    const text = urlEl.textContent, flash = ok => { copyBtn.textContent = ok ? 'Copiado ✓' : 'Falhou'; setTimeout(() => copyBtn.textContent = 'Copiar link', 1600); };
+    if(navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(() => flash(true), () => flash(false));
+    else {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      let ok = false; try { ok = document.execCommand('copy'); } catch(e) {}
+      ta.remove(); flash(ok);
+    }
+  });
+})();
+
+// ---------------- Init ----------------
+document.getElementById('statTotal').textContent = POINTS.length;
+document.getElementById('statPhotos').textContent = POINTS.filter(p=>p.hasImg).length;
+refreshAll();
+</script>
+<script src="fullscreen.js"></script>
+</body>
+</html>

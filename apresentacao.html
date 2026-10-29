@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>try{ if(localStorage.getItem("tema")==="dark") document.documentElement.setAttribute("data-theme","dark"); }catch(e){}</script>
+<meta name="theme-color" content="#D9A115">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Nivelamento Geométrico de Precisão – Madeira</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold:#D9A115; --gold-dark:#AD7C0C; --gray:#6E747A; --ink:#22252A; --ink-soft:#5B5F65;
+    --paper:#F6F4EF; --surface:#FFFFFF; --line:#E6E1D6; --line-strong:#D6D0C2;
+    --shadow:0 6px 24px rgba(34,37,42,.12);
+    --good:#4B7F52; --good-soft:rgba(75,127,82,.14); --bad:#C1471D; --on-ink:#fff;
+    --track:#EAE5D8;
+  }
+  html[data-theme="dark"]{
+    color-scheme:dark;
+    --ink:#ECE8DF; --ink-soft:#A9A59B; --paper:#16171A; --surface:#212327;
+    --line:#34363B; --line-strong:#464952; --shadow:0 6px 24px rgba(0,0,0,.55);
+    --gold-dark:#E4B53E; --good:#6FBF78; --good-soft:rgba(111,191,120,.16); --bad:#F0764B; --on-ink:#16171A;
+    --track:#2C2E33;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--paper); color:var(--ink); font-family:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,Arial,sans-serif; -webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Archivo',system-ui,sans-serif; margin:0; text-wrap:balance;}
+  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums;}
+  a{color:inherit;}
+
+  .topbar{display:flex; align-items:center; gap:14px; padding:0 18px; height:60px; background:var(--surface); border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-mark{width:34px; height:34px; flex:0 0 auto;}
+  .brand-text{display:flex; flex-direction:column; line-height:1.05;}
+  .brand-text .geo{font-family:'Archivo',sans-serif; font-weight:800; font-size:19px;}
+  .brand-text .geo span.g{color:var(--gold-dark);} .brand-text .geo span.i{color:var(--gray);}
+  .brand-text .sub{font-size:9.5px; letter-spacing:.14em; color:var(--ink-soft); font-weight:600; text-transform:uppercase; margin-top:1px;}
+  .divider-v{width:1px; align-self:stretch; margin:12px 4px; background:var(--line-strong);}
+  .proj-title{display:flex; flex-direction:column; gap:1px; min-width:0; flex:1 1 220px;}
+  .proj-title h1{font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .proj-title .proj-sub{font-size:11.5px; color:var(--ink-soft);}
+
+  .page{max-width:1240px; margin:0 auto; padding:30px 22px 64px; display:flex; flex-direction:column; gap:22px;}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow);}
+
+  /* ---- hero ---- */
+  .hero{padding:30px 34px 34px; position:relative; overflow:hidden;}
+  .hero::before{content:''; position:absolute; right:-80px; top:-80px; width:300px; height:300px; border-radius:50%;
+    background:radial-gradient(circle, rgba(217,161,21,.22), rgba(217,161,21,0) 70%); pointer-events:none;}
+  .hero-top{display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; position:relative;}
+  .eyebrow{font-size:11px; text-transform:uppercase; letter-spacing:.14em; color:var(--ink-soft); font-weight:600;}
+  .big{font-family:'Archivo',sans-serif; font-weight:800; font-size:clamp(56px,10vw,104px); line-height:.95; letter-spacing:-.02em; color:var(--ink);}
+  .big small{font-size:.42em; font-weight:700; color:var(--gold-dark); margin-left:4px;}
+  .hero-sub{font-size:15px; color:var(--ink-soft); margin-top:6px;}
+  .hero-sub b{color:var(--ink); font-weight:600;}
+  .hero-meta{display:flex; gap:26px; flex-wrap:wrap;}
+  .hero-meta div{display:flex; flex-direction:column; gap:2px;}
+  .hero-meta .v{font-family:'IBM Plex Mono',monospace; font-size:24px; font-weight:600;}
+  .hero-meta .l{font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-soft); font-weight:600;}
+
+  /* ---- barras dos troços ---- */
+  .tracks{display:flex; flex-direction:column; gap:26px; margin-top:30px; position:relative;}
+  .track-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:9px;}
+  .track-head h2{font-size:17px; font-weight:700;}
+  .track-head h2 span{color:var(--ink-soft); font-weight:600;}
+  .chip{display:inline-flex; align-items:center; gap:5px; padding:3px 11px; border-radius:99px; font-size:11.5px; font-weight:600; margin-left:10px; vertical-align:2px;}
+  .chip.done{background:var(--good-soft); color:var(--good);}
+  .chip.live{background:rgba(217,161,21,.18); color:var(--gold-dark);}
+  .chip.live::before{content:''; width:7px; height:7px; border-radius:50%; background:var(--gold); animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.35; transform:scale(.7);}}
+  .track-nums{font-family:'IBM Plex Mono',monospace; font-size:15px; color:var(--ink-soft);}
+  .track-nums b{color:var(--ink); font-size:20px; font-weight:600;}
+  .bar{position:relative; height:30px; border-radius:99px; background:var(--track); overflow:hidden; box-shadow:inset 0 1px 3px rgba(0,0,0,.12);}
+  .fill{position:absolute; inset:0 auto 0 0; width:0; border-radius:99px; background:linear-gradient(90deg,#E9B73A,#D9A115 55%,#C48E0C);
+    transition:width 1.6s cubic-bezier(.16,1,.3,1); box-shadow:0 0 18px rgba(217,161,21,.55);}
+  .fill.done{background:linear-gradient(90deg,#5E9A66,#4B7F52); box-shadow:0 0 18px rgba(75,127,82,.45);}
+  .fill::after{content:''; position:absolute; inset:0; border-radius:inherit;
+    background:linear-gradient(110deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%); background-size:220% 100%; animation:shine 3.2s ease-in-out infinite;}
+  @keyframes shine{0%{background-position:160% 0;} 100%{background-position:-60% 0;}}
+  .ticks{display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-soft); margin-top:6px; padding:0 4px;}
+  .track-foot{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
+  .btn{display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border-radius:10px; border:1px solid var(--line-strong); background:var(--surface);
+    font-size:12.5px; font-weight:600; color:var(--ink); text-decoration:none; cursor:pointer;}
+  .btn:hover{border-color:var(--gold);}
+  .btn.primary{background:var(--ink); color:var(--on-ink); border-color:var(--ink);}
+  .btn svg{width:14px; height:14px;}
+  .today{font-size:12.5px; color:var(--ink-soft); margin-left:auto; align-self:center;}
+  .today b{color:var(--ink);}
+
+  /* ---- qualidade ---- */
+  .section-title{font-size:13px; text-transform:uppercase; letter-spacing:.12em; color:var(--ink-soft); font-weight:700; margin:8px 2px -4px;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:18px;}
+  .q{padding:22px 24px; display:flex; flex-direction:column; gap:10px; min-height:210px;}
+  .q h3{font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); font-weight:700;}
+  .ring-wrap{display:flex; align-items:center; gap:18px;}
+  .ring{width:112px; height:112px; flex:0 0 auto;}
+  .ring .bg{stroke:var(--track);} .ring .fg{stroke:var(--good); transition:stroke-dashoffset 1.6s cubic-bezier(.16,1,.3,1);}
+  .ring text{font-family:'Archivo',sans-serif; font-weight:800; fill:var(--ink);}
+  .q .num{font-family:'IBM Plex Mono',monospace; font-size:28px; font-weight:600; line-height:1.1;}
+  .q .num small{font-size:15px; color:var(--ink-soft); font-weight:500;}
+  .q p{margin:0; font-size:12.5px; color:var(--ink-soft); line-height:1.5;}
+  .q p b{color:var(--ink);}
+  .scale{position:relative; height:12px; border-radius:99px; background:linear-gradient(90deg,var(--good) 0%,#D9A115 70%,var(--bad) 100%); opacity:.9; margin-top:6px;}
+  .scale i{position:absolute; top:-5px; width:4px; height:22px; border-radius:3px; background:var(--ink); box-shadow:0 0 0 3px var(--surface); transition:left 1.6s cubic-bezier(.16,1,.3,1); left:0;}
+  .scale-l{display:flex; justify-content:space-between; font-size:10.5px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;}
+
+  .facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px;}
+  .fact{padding:16px 18px;}
+  .fact .v{font-family:'IBM Plex Mono',monospace; font-size:26px; font-weight:600;}
+  .fact .l{font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-soft); font-weight:600; margin-top:2px;}
+
+  footer{font-size:11px; color:var(--ink-soft); padding-top:8px;}
+  @media (max-width:720px){ .hero{padding:22px 18px 24px;} .today{margin-left:0;} }
+  @media (prefers-reduced-motion:reduce){ .fill,.ring .fg,.scale i{transition:none;} .fill::after,.chip.live::before{animation:none;} }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="47" fill="none" stroke="#D9A115" stroke-width="6"/>
+      <circle cx="50" cy="50" r="38" fill="#D9A115"/>
+      <path d="M22 66 L40 34 L52 54 L60 42 L78 66 Z" fill="#6E747A"/>
+    </svg>
+    <div class="brand-text">
+      <span class="geo"><span class="g">Geo</span><span class="i">ide</span></span>
+      <span class="sub">Geosystems</span>
+    </div>
+  </div>
+  <div class="divider-v"></div>
+  <div class="proj-title">
+    <h1>Nivelamento Geométrico de Precisão &middot; Madeira</h1>
+    <span class="proj-sub">Visão geral do projeto &middot; Leica LS15</span>
+  </div>
+</header>
+
+<main class="page">
+  <section class="card hero" id="hero">
+    <div class="hero-top">
+      <div>
+        <div class="eyebrow">Progresso global do traçado</div>
+        <div class="big"><span id="gPct">0</span><small>%</small></div>
+        <div class="hero-sub"><b id="gKm">–</b> km nivelados de <b id="gTotal">–</b> km planeados</div>
+      </div>
+      <div class="hero-meta">
+        <div><span class="v" id="mEst">–</span><span class="l">Estações</span></div>
+        <div><span class="v" id="mDias">–</span><span class="l">Dias de trabalho</span></div>
+        <div><span class="v" id="mRend">–</span><span class="l">Rendimento (m/h)</span></div>
+      </div>
+    </div>
+    <div class="tracks" id="tracks"></div>
+  </section>
+
+  <div class="section-title">Qualidade do nivelamento</div>
+  <section class="grid" id="quality"></section>
+
+  <footer id="foot">Dados do sistema de monitorização Galileo2000, atualizados automaticamente. <br>Plataforma desenvolvida por Geoide Geosystems, SA.</footer>
+</main>
+
+<script src="resumo.js"></script>
+<script>
+(function(){
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = id => document.getElementById(id);
+  const pt = (n, d=1) => Number(n).toLocaleString('pt-PT', {minimumFractionDigits:d, maximumFractionDigits:d});
+
+  function countUp(el, to, dec, ms){
+    if(reduce || !isFinite(to)){ el.textContent = pt(to, dec); return; }
+    const from = parseFloat(el.dataset.v || '0') || 0; el.dataset.v = to;
+    const t0 = performance.now();
+    (function step(now){
+      const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = pt(from + (to - from) * e, dec);
+      if(k < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+
+  function track(t){
+    const done = t.concluido || t.pct >= 99.95;
+    const chip = done ? '<span class="chip done">&#10003; Concluído</span>' : '<span class="chip live">Em curso</span>';
+    const hoje = t.hoje && t.hoje.linhas
+      ? `<span class="today">Hoje: <b>${t.hoje.linhas}</b> ${t.hoje.linhas === 1 ? 'linha' : 'linhas'} &middot; <b>${pt(t.hoje.metros,0)}</b> m</span>` : '';
+    const ticks = [0, .25, .5, .75, 1].map(f => `<span>${pt(t.total_km * f, f === 1 || f === 0 ? (f === 0 ? 0 : 2) : 1)} km</span>`).join('');
+    return `<div class="trk" data-id="${t.id}">
+      <div class="track-head">
+        <h2>Funchal <span>&rarr;</span> ${t.nome}${chip}</h2>
+        <div class="track-nums"><b data-km="${t.nivelados_km}">0</b> / ${pt(t.total_km, 2)} km &nbsp;&middot;&nbsp; <b data-pct="${t.pct}">0</b>%</div>
+      </div>
+      <div class="bar"><div class="fill${done ? ' done' : ''}" data-w="${Math.min(100, t.pct)}"></div></div>
+      <div class="ticks">${ticks}</div>
+      <div class="track-foot">
+        <a class="btn primary" href="index_novo.html${t.mapa.replace('index.html','')}${t.mapa.includes('?') ? '&' : '?'}replay=1"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>Replay do avanço</a>
+        <a class="btn" href="${t.mapa}">Mapa e fotografias</a>
+        <a class="btn" href="${t.progresso}">Detalhe das linhas</a>
+        ${hoje}
+      </div>
+    </div>`;
+  }
+
+  function ring(pct, label){
+    const r = 46, c = 2 * Math.PI * r;
+    return `<svg class="ring" viewBox="0 0 112 112" data-pct="${pct}">
+      <circle class="bg" cx="56" cy="56" r="${r}" fill="none" stroke-width="11"/>
+      <circle class="fg" cx="56" cy="56" r="${r}" fill="none" stroke-width="11" stroke-linecap="round" transform="rotate(-90 56 56)"
+        stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${c.toFixed(1)}" data-c="${c.toFixed(1)}"/>
+      <text x="56" y="61" text-anchor="middle" font-size="20">${label}</text></svg>`;
+  }
+
+  function render(R){
+    const T = R.trocos || [];
+    const sum = f => T.reduce((s, t) => s + (f(t) || 0), 0);
+    const total = sum(t => t.total_km), niv = sum(t => t.nivelados_km);
+    const pct = total ? 100 * niv / total : 0;
+    countUp($('gPct'), pct, 0, 1600); countUp($('gKm'), niv, 1, 1600); $('gTotal').textContent = pt(total, 2);
+    countUp($('mEst'), sum(t => t.estacoes), 0, 1400);
+    $('mDias').textContent = (() => { const d = Math.max(0, ...T.map(t => t.dias_trabalho || 0)); return d; })();
+    const wr = T.filter(t => t.rendimento_mh); $('mRend').textContent = wr.length ? pt(wr.reduce((s, t) => s + t.rendimento_mh * t.linhas, 0) / wr.reduce((s, t) => s + t.linhas, 0), 0) : '–';
+
+    $('tracks').innerHTML = T.map(track).join('');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.querySelectorAll('.fill').forEach(f => f.style.width = f.dataset.w + '%');
+      document.querySelectorAll('[data-km]').forEach(e => countUp(e, +e.dataset.km, 2, 1600));
+      document.querySelectorAll('[data-pct]').forEach(e => { if(e.tagName === 'B') countUp(e, +e.dataset.pct, 1, 1600); });
+    }));
+
+    const nL = sum(t => t.linhas), nA = sum(t => t.aprovadas), nT = sum(t => t.aprov_tec);
+    const pA = nL ? 100 * nA / nL : 0, pT = nL ? 100 * nT / nL : 0;
+    const ef = T.filter(t => t.ef_medio_pct_tol != null && t.linhas);
+    const efm = ef.length ? ef.reduce((s, t) => s + t.ef_medio_pct_tol * t.linhas, 0) / ef.reduce((s, t) => s + t.linhas, 0) : null;
+    const best = T.map(t => t.melhor).filter(Boolean).sort((a, b) => a.pct - b.pct)[0];
+    const porTroco = f => T.filter(t => t.linhas).map(t => `${t.nome}: <b>${f(t)}</b>`).join(' &middot; ');
+    $('quality').innerHTML = `
+      <div class="card q"><h3>Linhas aprovadas</h3><div class="ring-wrap">${ring(pA, nA + '/' + nL)}<div><div class="num">${pt(pA, 0)}<small>%</small></div><p>Erro de fecho dentro da tolerância do sistema.</p></div></div><p>${porTroco(t => t.aprovadas + '/' + t.linhas)}</p></div>
+      <div class="card q"><h3>Critério do caderno de encargos</h3><div class="ring-wrap">${ring(pT, nT + '/' + nL)}<div><div class="num">${pt(pT, 0)}<small>%</small></div><p>EF ≤ 1,5 mm·√L, com L em km.</p></div></div><p>${porTroco(t => t.aprov_tec + '/' + t.linhas)}</p></div>
+      <div class="card q"><h3>Erro de fecho médio</h3><div class="num">${efm == null ? '–' : pt(efm, 0)}<small>% da tolerância</small></div>
+        <div class="scale"><i data-left="${efm == null ? 0 : Math.min(100, efm)}"></i></div><div class="scale-l"><span>0%</span><span>tolerância</span><span>100%</span></div>
+        <p>Quanto mais à esquerda, mais precisas as linhas.</p></div>
+      <div class="card q"><h3>Melhor linha</h3>${best ? `<div class="num">${best.linha}</div><p>Erro de fecho de <b>${pt(best.ef, 2)} mm</b> para uma tolerância de <b>${pt(best.toll, 2)} mm</b> (${best.pct}% da tolerância).</p>` : '<p>–</p>'}</div>`;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.querySelectorAll('.ring').forEach(r => { const fg = r.querySelector('.fg'), c = +fg.dataset.c; fg.style.strokeDashoffset = c * (1 - (+r.dataset.pct) / 100); });
+      document.querySelectorAll('.scale i').forEach(i => i.style.left = 'calc(' + i.dataset.left + '% - 2px)');
+    }));
+
+    const min = R.gerado ? Math.round((Date.now() - Date.parse(R.gerado)) / 60000) : null;
+    $('foot').innerHTML = 'Dados do sistema de monitorização Galileo2000' + (min != null && min >= 0 ? ` &middot; atualizado há ${min < 60 ? min + ' min' : Math.floor(min / 60) + ' h'}` : '') +
+      '. <br>Plataforma desenvolvida por Geoide Geosystems, SA.';
+  }
+
+  if(window.RESUMO) render(window.RESUMO);
+  else $('tracks').innerHTML = '<p style="color:var(--ink-soft)">Sem dados para mostrar de momento.</p>';
+
+  // Atualiza sozinho de 5 em 5 minutos (sem recarregar a pagina).
+  setInterval(() => {
+    const s = document.createElement('script');
+    s.src = 'resumo.js?t=' + Date.now();
+    s.onload = () => { s.remove(); if(window.RESUMO) render(window.RESUMO); };
+    s.onerror = () => s.remove();
+    document.head.appendChild(s);
+  }, 5 * 60 * 1000);
+})();
+</script>
+<script src="fullscreen.js"></script>
+</body>
+</html>
