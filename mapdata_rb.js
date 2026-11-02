@@ -1,6 +1,7 @@
 // Dados do mapa do troco Funchal - Ribeira Brava (pontos, tracado e posicao da equipa).
 // POINTS/ROUTE gerados por gerar_mapdata_rb.py; LS15_POS e escrito pelo robo de atualizacao.
 const POINTS =[
+{n:"0+000",lat:32.644786,lon:-16.910749,e:0,img:"https://andrebelazaima.github.io/Fotos-Funchal-Ponta-Sao-Lourenco/0ENQ.jpeg",mE:null,pN:null},
 {n:"NP05",lat:32.671292,lon:-17.064707,e:54.43,img:"",mE:306394.00,pN:3616730.84},
 {n:"T14",lat:32.671230,lon:-17.065120,e:54.27,img:"",mE:306355.20,pN:3616724.73},
 {n:"T13",lat:32.671260,lon:-17.064266,e:55.27,img:"",mE:306435.31,pN:3616726.57},
