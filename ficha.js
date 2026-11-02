@@ -114,6 +114,29 @@
     w.document.close();
   };
 
+  // "Comunicar problema com esta marca": abre o email do utilizador ja preenchido (sem destinatario por defeito).
+  // Para fixar um destinatario, preencher CONTACTO_PROBLEMA (ex.: 'geral@exemplo.pt').
+  const CONTACTO_PROBLEMA = '';
+  window.comunicarProblema = function(nome){
+    const p = POINTS.find(q => q.n === nome);
+    if(!p) return;
+    const base = location.origin + location.pathname + location.search;
+    const corpo = [
+      'Marca: ' + p.n,
+      'Troço: ' + SECAO.titulo,
+      'Coordenadas (WGS84): ' + p.lat.toFixed(6) + ', ' + p.lon.toFixed(6),
+      'Mapa: ' + base,
+      '',
+      'O que se passa (marca danificada, removida, inacessível, outra):',
+      '',
+      '',
+      'Data da observação:',
+      'Contacto:'
+    ].join('\n');
+    location.href = 'mailto:' + encodeURIComponent(CONTACTO_PROBLEMA).replace('%40', '@') +
+      '?subject=' + encodeURIComponent('Marca ' + p.n + ' – comunicação de problema') + '&body=' + encodeURIComponent(corpo);
+  };
+
   // Fichas de todos os pontos visiveis na lista (respeita os filtros), pela ordem do perfil (Funchal -> fim)
   window.fichasVisiveis = function(){
     const lista = PROFILE.filter(p => typeof matchesFilter === 'function' ? matchesFilter(p) : true).map(p => p.n);

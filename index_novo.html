@@ -533,6 +533,8 @@
     font-size:11.5px; font-weight:500; color:var(--ink); text-decoration:none; border:1px solid var(--line);
   }
   .geoide-popup .popup-nav a:hover{border-color:var(--gold);}
+  .geoide-popup .popup-sub{display:block; text-align:center; margin:-6px 16px 12px; font-size:11px; color:var(--ink-soft); text-decoration:underline; text-underline-offset:2px;}
+  .geoide-popup .popup-sub:hover{color:var(--ink);}
 
   /* ---------- Photo lightbox ---------- */
   .lightbox-overlay{
@@ -1075,6 +1077,7 @@ function popupHtml(p){
         <a href="https://waze.com/ul?ll=${p.lat},${p.lon}&navigate=yes" target="_blank" rel="noopener">&#128663; Waze</a>
       </div>
       <a class="popup-link" href="javascript:void(0)" onclick="fichaMarca('${p.n}')">Ficha da marca (PDF) &rarr;</a>
+      <a class="popup-sub" href="javascript:void(0)" onclick="comunicarProblema('${p.n}')">Comunicar problema com esta marca</a>
     </div>`;
 }
 
