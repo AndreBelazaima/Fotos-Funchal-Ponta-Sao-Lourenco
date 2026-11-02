@@ -2123,6 +2123,17 @@ const Linhas = (function(){
     return isNaN(d) ? '\u2014' : d.toLocaleString('pt-PT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
   }
   function popupLinha(l, st){
+    if(l.extra){   // troco de acesso (marca 0+000 -> inicio do tracado), ja nivelado
+      return `
+    <div class="geoide-popup">
+      <div class="popup-head"><span class="tag" style="--c:${COLORS.aprovada}">Concluído</span></div>
+      <div style="padding:0 16px 10px 16px;"><h3>Acesso à marca 0+000</h3></div>
+      <dl class="popup-data">
+        <div class="row"><dt>Comprimento</dt><dd>${num(l.comp_niv, 0)} m</dd></div>
+        <div class="row"><dt>Troço</dt><dd>0+000 → início do traçado</dd></div>
+      </dl>
+    </div>`;
+    }
     return `
     <div class="geoide-popup">
       <div class="popup-head"><span class="tag" style="--c:${COLORS[st]}">${labelOf(l, st)}</span></div>
