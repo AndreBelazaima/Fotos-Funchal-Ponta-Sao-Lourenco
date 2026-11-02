@@ -670,7 +670,7 @@
       <div class="sidebar-section grow">
         <div class="list-count">
           <span>A mostrar <b id="listCount">0</b> pontos</span>
-          <button class="reset-link" id="resetFilters">repor filtros</button>
+          <span><button class="reset-link" id="fichasBtn" title="Gerar uma ficha A4 por ponto (os visíveis na lista) para imprimir ou guardar em PDF">fichas PDF</button> · <button class="reset-link" id="resetFilters">repor filtros</button></span>
         </div>
         <div id="pointList"></div>
       </div>
@@ -1045,6 +1045,7 @@ function popupHtml(p){
         <a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}&travelmode=driving" target="_blank" rel="noopener">&#128205; Google Maps</a>
         <a href="https://waze.com/ul?ll=${p.lat},${p.lon}&navigate=yes" target="_blank" rel="noopener">&#128663; Waze</a>
       </div>
+      <a class="popup-link" href="javascript:void(0)" onclick="fichaMarca('${p.n}')">Ficha da marca (PDF) &rarr;</a>
     </div>`;
 }
 
@@ -1358,6 +1359,7 @@ document.getElementById('search').addEventListener('input', e => {
   refreshAll();
 });
 
+document.getElementById('fichasBtn').addEventListener('click', () => fichasVisiveis());
 document.getElementById('resetFilters').addEventListener('click', () => {
   state.search = ''; document.getElementById('search').value = '';
   state.photoOnly = false; document.getElementById('photoOnly').checked = false;
@@ -2435,6 +2437,7 @@ document.getElementById('statPhotos').textContent = POINTS.filter(p=>p.hasImg).l
 refreshAll();
 </script>
 <script src="fullscreen.js"></script>
+<script src="ficha.js"></script>
 <script src="visaogeral.js"></script>
 </body>
 </html>
