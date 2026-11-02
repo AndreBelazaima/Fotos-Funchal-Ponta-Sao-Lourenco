@@ -26,7 +26,7 @@ const POINTS =[
 {n:"18400",lat:32.665423,lon:-17.024081,e:504.11,img:"https://andrebelazaima.github.io/Funchal-Ribeira-Brava/18400ENQ.jpg",mE:310191.80,pN:3616006.65},
 {n:"17600",lat:32.663067,lon:-17.019113,e:530.62,img:"https://andrebelazaima.github.io/Funchal-Ribeira-Brava/17600ENQ.jpg",mE:310652.71,pN:3615736.59},
 {n:"16800",lat:32.660857,lon:-17.014531,e:554.67,img:"https://andrebelazaima.github.io/Funchal-Ribeira-Brava/16800ENQ.jpg",mE:311077.81,pN:3615483.32},
-{n:"16200",lat:32.663026,lon:-17.011756,e:558.27,img:"",mE:311342.74,pN:3615718.97},
+{n:"16200",lat:32.663026,lon:-17.011756,e:558.27,img:"https://andrebelazaima.github.io/Funchal-Ribeira-Brava/16200ENQ.jpg",mE:311342.74,pN:3615718.97},
 {n:"NP02",lat:32.662313,lon:-17.011457,e:519.9,img:"https://andrebelazaima.github.io/Funchal-Ribeira-Brava/NP02ENQ.jpg",mE:311369.27,pN:3615639.39},
 {n:"T6",lat:32.662562,lon:-17.011109,e:522.59,img:"https://andrebelazaima.github.io/Funchal-Ribeira-Brava/T6ENQ.jpg",mE:311402.45,pN:3615666.32},
 {n:"T5",lat:32.662397,lon:-17.011398,e:521.65,img:"https://andrebelazaima.github.io/Funchal-Ribeira-Brava/T5ENQ.jpg",mE:311374.97,pN:3615648.50},
