@@ -860,6 +860,7 @@ const CATS = {
 };
 
 function categorize(name){
+  if(/^IH BH/i.test(name)) return 'estaca';   // marca de referencia do inicio do tracado
   if(/^AUX\d+$/i.test(name)) return 'aux';
   if(/^\d+[A-Z]$/i.test(name)) return 'aux';
   if(/^NP\d+$/i.test(name)) return 'no';
@@ -1173,7 +1174,7 @@ function updateLabelsForZoom(){
     let keep;
     if(p.cat === 'estaca'){
       const chainage = chainageOf(p.n);
-      keep = toggleOn && (showAll || (chainage !== null && chainage % SPARSE_STEP_M === 0));
+      keep = toggleOn && (showAll || chainage === null || chainage % SPARSE_STEP_M === 0);   // sem chainage (ex: IH BH 42/11): nome sempre visivel
     } else {
       keep = toggleOn && showAll;
     }
@@ -1393,8 +1394,8 @@ function haversine(lat1, lon1, lat2, lon2){
 
 // Ordered Ponta de São Lourenço -> Funchal in the source file; reversed here so the
 // profile reads left-to-right in the same direction as the project title (Funchal -> PSL).
-// "0+000" is excluded: it carries no real levelled elevation (placeholder z=0 in the source).
-const PROFILE = POINTS.filter(p => p.n !== '0+000').slice().reverse();
+// A marca IH BH 42/11 (inicio do tracado) e o ultimo ponto do ficheiro, por isso abre o perfil.
+const PROFILE = POINTS.slice().reverse();
 (function computeProfileDistances(){
   let acc = 0;
   PROFILE.forEach((p, i) => {
@@ -2123,14 +2124,14 @@ const Linhas = (function(){
     return isNaN(d) ? '\u2014' : d.toLocaleString('pt-PT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
   }
   function popupLinha(l, st){
-    if(l.extra){   // troco de acesso (marca 0+000 -> inicio do tracado), ja nivelado
+    if(l.extra){   // troco de acesso (marca IH BH 42/11 -> inicio do tracado), ja nivelado
       return `
     <div class="geoide-popup">
       <div class="popup-head"><span class="tag" style="--c:${COLORS.aprovada}">Concluído</span></div>
-      <div style="padding:0 16px 10px 16px;"><h3>Acesso à marca 0+000</h3></div>
+      <div style="padding:0 16px 10px 16px;"><h3>Acesso à marca IH BH 42/11</h3></div>
       <dl class="popup-data">
         <div class="row"><dt>Comprimento</dt><dd>${num(l.comp_niv, 0)} m</dd></div>
-        <div class="row"><dt>Troço</dt><dd>0+000 → início do traçado</dd></div>
+        <div class="row"><dt>Troço</dt><dd>IH BH 42/11 → início do traçado</dd></div>
       </dl>
     </div>`;
     }
