@@ -149,7 +149,6 @@
       </div>
       <div class="hero-meta">
         <div><span class="v" id="mEst">–</span><span class="l">Estações</span></div>
-        <div><span class="v" id="mDias">–</span><span class="l">Dias de trabalho</span></div>
         <div><span class="v" id="mRend">–</span><span class="l">Rendimento (m/h)</span></div>
       </div>
     </div>
@@ -218,7 +217,6 @@
     const pct = total ? 100 * niv / total : 0;
     countUp($('gPct'), pct, 0, 1600); countUp($('gKm'), niv, 1, 1600); $('gTotal').textContent = pt(total, 2);
     countUp($('mEst'), sum(t => t.estacoes), 0, 1400);
-    $('mDias').textContent = (() => { const d = Math.max(0, ...T.map(t => t.dias_trabalho || 0)); return d; })();
     const wr = T.filter(t => t.rendimento_mh); $('mRend').textContent = wr.length ? pt(wr.reduce((s, t) => s + t.rendimento_mh * t.linhas, 0) / wr.reduce((s, t) => s + t.linhas, 0), 0) : '–';
 
     $('tracks').innerHTML = T.map(track).join('');

@@ -108,7 +108,6 @@
     var best = T.map(function (t) { return t.melhor; }).filter(Boolean).sort(function (a, b) { return a.pct - b.pct; })[0];
     var wr = T.filter(function (t) { return t.rendimento_mh; });
     var rend = wr.length ? wr.reduce(function (s, t) { return s + t.rendimento_mh * t.linhas; }, 0) / wr.reduce(function (s, t) { return s + t.linhas; }, 0) : null;
-    var dias = Math.max.apply(null, [0].concat(T.map(function (t) { return t.dias_trabalho || 0; })));
     var por = function (f) { return T.filter(function (t) { return t.linhas; }).map(function (t) { return t.nome + ': <b>' + f(t) + '</b>'; }).join(' &middot; '); };
     var min = R.gerado ? Math.round((Date.now() - Date.parse(R.gerado)) / 60000) : null;
 
@@ -116,7 +115,6 @@
       '<div class="vg-top"><div><div class="vg-eyebrow">Progresso global do traçado</div><div class="vg-big"><span id="vgPct">0</span><small>%</small></div>' +
       '<div class="vg-sub"><b>' + pt(niv, 1) + '</b> km nivelados de <b>' + pt(total, 2) + '</b> km planeados</div></div>' +
       '<div class="vg-meta"><div><span class="v">' + pt(sum(function (t) { return t.estacoes; }), 0) + '</span><span class="l">Estações</span></div>' +
-      '<div><span class="v">' + dias + '</span><span class="l">Dias de trabalho</span></div>' +
       '<div><span class="v">' + (rend ? pt(rend, 0) : '–') + '</span><span class="l">Rendimento (m/h)</span></div></div></div>' +
       '<div class="vg-tracks">' + T.map(track).join('') + '</div>' +
       '<div class="vg-st">Qualidade do nivelamento</div><div class="vg-grid">' +
