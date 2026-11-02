@@ -53,7 +53,7 @@ const POINTS =[
 {n:"3200",lat:32.637296,lon:-16.937760,e:98.0,img:"https://andrebelazaima.github.io/Funchal-Ribeira-Brava/3200ENQ.jpg",mE:318230.90,pN:3612736.79},
 {n:"2400",lat:32.638485,lon:-16.928949,e:92.82,img:"https://andrebelazaima.github.io/Funchal-Ribeira-Brava/2400ENQ.jpg",mE:319059.96,pN:3612853.62},
 {n:"1600",lat:32.643157,lon:-16.923355,e:96.0,img:"https://andrebelazaima.github.io/Funchal-Ribeira-Brava/1600ENQ.jpg",mE:319594.11,pN:3613362.12},
-{n:"800",lat:32.643299,lon:-16.914952,e:56.72,img:"https://andrebelazaima.github.io/Funchal-Ribeira-Brava/800ENQ.jpg",mE:320382.69,pN:3613363.59},
+{n:"800",lat:32.643299,lon:-16.914952,e:56.72,img:"https://andrebelazaima.github.io/Funchal-Ribeira-Brava/0800ENQ.jpg",mE:320382.69,pN:3613363.59},
 {n:"IH BH 42/11",lat:32.644786,lon:-16.910749,e:3.99,img:"https://andrebelazaima.github.io/Fotos-Funchal-Ponta-Sao-Lourenco/0ENQ.jpeg",mE:null,pN:null}
 ]
 ;
