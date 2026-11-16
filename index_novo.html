@@ -1112,8 +1112,28 @@ function ls15AgeText(){
   const dias = Math.round(h / 24);
   return 'há ' + dias + (dias === 1 ? ' dia' : ' dias');
 }
-function ls15Label(){ return (ls15Stale() ? 'Última posição' : 'Equipa') + ' · ' + ls15AgeText(); }
+// Posicao estimada: enquanto a Galileo2000 nao regista a posicao real (so o faz quando uma linha termina),
+// a equipa e colocada no fim da linha verde (fim do troco ja nivelado). null = usa-se a posicao real.
+let ls15Est = null;
+function ls15Label(){ return ls15Est ? 'Equipa · posição estimada' : (ls15Stale() ? 'Última posição' : 'Equipa') + ' · ' + ls15AgeText(); }
+function ls15PopupEstimada(p){
+  const t = String(p.tempo || '');
+  const dataFmt = t.length === 12 ? `${t.slice(6,8)}:${t.slice(8,10)} de ${t.slice(4,6)}/${t.slice(2,4)}` : '&mdash;';
+  return `
+    <div class="geoide-popup">
+      <div class="popup-head"><span class="tag" style="--c:#C1471D">Equipa &ndash; posição estimada</span></div>
+      <div style="padding:0 16px 10px 16px;"><h3>Fim da linha verde</h3></div>
+      <dl class="popup-data">
+        <div class="row"><dt>Nivelado até</dt><dd>${ls15Est.km.toFixed(2).replace('.', ',')} km</dd></div>
+        <div class="row"><dt>Lat / Lon</dt><dd>${ls15Est.lat.toFixed(6)}, ${ls15Est.lon.toFixed(6)}</dd></div>
+        <div class="row"><dt>Última da Galileo</dt><dd>${p.linha || '&mdash;'} · ${p.ponto || '&mdash;'}</dd></div>
+        <div class="row"><dt>Registada às</dt><dd>${dataFmt} (${ls15AgeText()})</dd></div>
+      </dl>
+      <div style="margin:0 16px 10px;font-size:11px;color:var(--ink-soft);">A Galileo2000 só regista a posição quando uma linha termina. Até lá, a equipa é colocada, aproximadamente, no fim do troço já nivelado.</div>
+    </div>`;
+}
 function ls15PopupHtml(p){
+  if(ls15Est) return ls15PopupEstimada(p);
   const stale = ls15Stale();
   const t = String(p.tempo || '');
   const dataFmt = t.length === 12
@@ -1161,6 +1181,22 @@ if (typeof LS15_POS !== 'undefined' && LS15_POS) {
   }
   refreshLs15();
   setInterval(refreshLs15, 60000);
+  // Chamada pelas Linhas (linhas_mapa) sempre que carregam: decide entre posicao real e estimada.
+  window.ls15Atualizar = function(){
+    const f = Linhas.frente();
+    let est = null;
+    if(f != null && !ls15Stale()){
+      const pt = Linhas.pointAt(f), r = Math.PI / 180;
+      const h = Math.sin((LS15_POS.lat - pt[0]) * r / 2) ** 2 + Math.cos(pt[0] * r) * Math.cos(LS15_POS.lat * r) * Math.sin((LS15_POS.lon - pt[1]) * r / 2) ** 2;
+      if(2 * 6371008.8 * Math.asin(Math.sqrt(h)) > 200) est = { lat: pt[0], lon: pt[1], km: f / 1000 };
+    }
+    ls15Est = est;
+    const pos = est || LS15_POS;
+    ls15Marker.setLatLng([pos.lat, pos.lon]);
+    LS15_PROFILE = projectDistanceAlongProfile(pos.lat, pos.lon);
+    refreshLs15();
+    if(typeof renderProfile === 'function') renderProfile();
+  };
 }
 document.getElementById('ls15Toggle').addEventListener('change', e => {
   if (!ls15Marker) return;
@@ -1476,7 +1512,7 @@ function projectDistanceAlongProfile(lat, lon){
   }
   return best;
 }
-const LS15_PROFILE = (typeof LS15_POS !== 'undefined' && LS15_POS)
+let LS15_PROFILE = (typeof LS15_POS !== 'undefined' && LS15_POS)
   ? projectDistanceAlongProfile(LS15_POS.lat, LS15_POS.lon)
   : null;
 
@@ -1609,7 +1645,7 @@ function renderProfile(){
     ls15MarkerSvg = `<line class="pf-ls15-guide${sc}" x1="${lx}" x2="${lx}" y1="${padT}" y2="${baseY.toFixed(1)}"/>
     <circle class="pf-ls15-dot${sc}" cx="${lx}" cy="${ly}" r="4"></circle>
     <circle class="pf-ls15-hit" cx="${lx}" cy="${ly}" r="9" fill="transparent"></circle>
-    <text class="pf-ls15-label${sc}" x="${lx}" y="${ltY}" text-anchor="middle">${sc ? 'Última posição' : 'Equipa'}</text>`;
+    <text class="pf-ls15-label${sc}" x="${lx}" y="${ltY}" text-anchor="middle">${sc ? 'Última posição' : (ls15Est ? 'Equipa (est.)' : 'Equipa')}</text>`;
   }
 
   let segSvg = '';
@@ -2284,6 +2320,7 @@ const Linhas = (function(){
     });
     if(toggle.checked && !map.hasLayer(layer)) layer.addTo(map);
     buildProfileSegs();
+    if(window.ls15Atualizar) ls15Atualizar();
   }
 
   function updateStale(){
@@ -2313,7 +2350,7 @@ const Linhas = (function(){
   load();
   setInterval(load, 5 * 60 * 1000);
   setInterval(updateStale, 60 * 1000);
-  return { statusOf, sliceMain, open, tooltipText, linhas: () => data, isShown: () => toggle.checked, setShown: on => { toggle.checked = on; toggle.dispatchEvent(new Event('change')); } };
+  return { statusOf, sliceMain, pointAt, frente: () => data ? data.linhas.reduce((m, l) => (l.b - l.a >= 1 && l.b > m) ? l.b : m, 0) || null : null, open, tooltipText, linhas: () => data, isShown: () => toggle.checked, setShown: on => { toggle.checked = on; toggle.dispatchEvent(new Event('change')); } };
 })();
 
 // ---------------- Progresso no tempo (animacao) ----------------
