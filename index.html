@@ -1075,13 +1075,15 @@ function ls15Stale(){ const d = ls15Date(); return !!d && (Date.now() - d.getTim
 function ls15AgeText(){
   const d = ls15Date(); if(!d) return '';
   const min = Math.max(0, (Date.now() - d.getTime()) / 60000);
+  if(min < 1) return 'agora mesmo';
   if(min < 60) return 'há ' + Math.round(min) + ' min';
+  if(min < 360) return 'há ' + Math.floor(min / 60) + ' h ' + String(Math.round(min % 60)).padStart(2, '0') + ' min';
   const h = min / 60;
   if(h < 48) return 'há ' + Math.round(h) + ' h';
   const dias = Math.round(h / 24);
   return 'há ' + dias + (dias === 1 ? ' dia' : ' dias');
 }
-function ls15Label(){ return ls15Stale() ? 'Última posição · ' + ls15AgeText() : 'Equipa'; }
+function ls15Label(){ return (ls15Stale() ? 'Última posição' : 'Equipa') + ' · ' + ls15AgeText(); }
 function ls15PopupHtml(p){
   const stale = ls15Stale();
   const t = String(p.tempo || '');
@@ -1098,7 +1100,7 @@ function ls15PopupHtml(p){
         <div class="row"><dt>Linha</dt><dd>${p.linha || '&mdash;'}</dd></div>
         <div class="row"><dt>Cota (z)</dt><dd>${p.elev != null ? p.elev.toFixed(2) + ' m' : '&mdash;'}</dd></div>
         <div class="row"><dt>Lat / Lon</dt><dd>${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}</dd></div>
-        <div class="row"><dt>Registado em</dt><dd>${dataFmt}${stale ? ' (' + ls15AgeText() + ')' : ''}</dd></div>
+        <div class="row"><dt>Registado em</dt><dd>${dataFmt}${ls15AgeText() ? ' (' + ls15AgeText() + ')' : ''}</dd></div>
       </dl>
     </div>`;
 }
@@ -1152,7 +1154,7 @@ document.getElementById('ls15Toggle').addEventListener('change', e => {
     if(!(min >= 0) || min > LIVE_MAX_MIN){ el.hidden = true; return; }
     el.hidden = false;
     lineEl.textContent = LS15_POS.linha || '';
-    ageEl.textContent = min < 5 ? '' : (min < 60 ? ` (há ${Math.round(min)} min)` : ` (há ${(min/60).toFixed(1).replace('.', ',')} h)`);
+    ageEl.textContent = min < 1 ? ' (agora mesmo)' : (min < 60 ? ` (há ${Math.round(min)} min)` : ` (há ${(min/60).toFixed(1).replace('.', ',')} h)`);
   }
   tick();
   setInterval(tick, 60000);
