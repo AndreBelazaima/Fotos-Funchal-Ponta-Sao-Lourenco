@@ -1211,10 +1211,9 @@ document.getElementById('ls15Toggle').addEventListener('change', e => {
   const el = document.getElementById('liveTeamBanner');
   const lineEl = document.getElementById('liveTeamLine'), ageEl = document.getElementById('liveTeamAge');
   if(!el || typeof LS15_POS === 'undefined' || !LS15_POS || !LS15_POS.tempo) return;
-  const t = String(LS15_POS.tempo);
-  if(t.length !== 12) return;
-  const d = new Date(2000 + +t.slice(0,2), +t.slice(2,4) - 1, +t.slice(4,6), +t.slice(6,8), +t.slice(8,10), +t.slice(10,12));
   function tick(){
+    const d = ls15Date();   // le sempre a posicao atual (LS15_POS e atualizada pelas linhas_mapa)
+    if(!d){ el.hidden = true; return; }
     const min = (Date.now() - d.getTime()) / 60000;
     if(!(min >= 0) || min > LIVE_MAX_MIN){ el.hidden = true; return; }
     el.hidden = false;
@@ -2337,7 +2336,10 @@ const Linhas = (function(){
     sc.src = SECAO.linhas + '?t=' + Date.now();   // evita a cache do navegador/GitHub Pages
     sc.onload = () => {
       sc.remove();
-      if(window.LINHAS_MAPA && Array.isArray(window.LINHAS_MAPA.linhas)){ data = window.LINHAS_MAPA; build(); updateStale(); }
+      if(window.LINHAS_MAPA && Array.isArray(window.LINHAS_MAPA.linhas)){ data = window.LINHAS_MAPA;
+        // A posicao da equipa viaja neste ficheiro (renovado de 5 em 5 min): atualiza o marcador e o perfil sem recarregar a pagina.
+        if(data.pos && typeof LS15_POS !== 'undefined' && LS15_POS && String(data.pos.tempo) > String(LS15_POS.tempo)) Object.assign(LS15_POS, data.pos);
+        build(); updateStale(); }
     };
     sc.onerror = () => sc.remove();
     document.head.appendChild(sc);
