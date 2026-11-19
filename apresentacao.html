@@ -180,6 +180,7 @@
   }
 
   function track(t){
+    if(t.mapa.indexOf('t=') < 0) t.mapa = 'index.html?t=' + t.id;   // sem ?t= o mapa abre no troço da equipa
     const done = t.concluido || t.pct >= 99.95;
     const chip = done ? '<span class="chip done">&#10003; Concluído</span>' : '<span class="chip live">Em curso</span>';
     const hoje = t.hoje && t.hoje.linhas

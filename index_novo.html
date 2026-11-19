@@ -872,8 +872,9 @@
   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
   integrity="sha256-Hk4dIpcqOSb0hZjgyvFOP+cEmDXUKKNE/tT542ZbNQg=" crossorigin=""></script>
+<script src="resumo.js"></script>
 <script>
-// Troços do projeto. Escolhe-se com ?t=rb (por omissão: Ponta de São Lourenço, para os links e QR codes antigos).
+// Troços do projeto. Escolhe-se com ?t=rb ou ?t=psl; sem ?t= abre o troço onde a equipa está agora (o da leitura mais recente).
 const SECOES = {
   psl: { id:'psl', curto:'Ponta de São Lourenço', titulo:'Nivelamento Funchal → Ponta de São Lourenço',
          doc:'Nivelamento Funchal – Ponta de São Lourenço', km:'39,45',
@@ -882,7 +883,15 @@ const SECOES = {
          doc:'Nivelamento Funchal – Ribeira Brava', km:'27,2',
          mapdata:'mapdata_rb.js', derivacoes:null, linhas:'linhas_mapa_rb.js', progresso:'progresso_rb.html' }
 };
-const SECAO = SECOES[new URLSearchParams(location.search).get('t')] || SECOES.psl;
+// Troço onde a equipa trabalha agora: o da última leitura (resumo.js, gerado pelo robô). Sem dados, Ponta de São Lourenço.
+function trocoDaEquipa(){
+  try {
+    const ts = (window.RESUMO && RESUMO.trocos || []).filter(x => SECOES[x.id] && x.ultima_leitura);
+    ts.sort((a, b) => String(b.ultima_leitura).localeCompare(String(a.ultima_leitura)));
+    return ts.length ? ts[0].id : 'psl';
+  } catch(e) { return 'psl'; }
+}
+const SECAO = SECOES[new URLSearchParams(location.search).get('t')] || SECOES[trocoDaEquipa()] || SECOES.psl;
 document.write('<script src="' + SECAO.mapdata + '"><\/script>');
 if(SECAO.derivacoes) document.write('<script src="' + SECAO.derivacoes + '"><\/script>');
 </script>
@@ -915,7 +924,7 @@ POINTS.forEach(p => { p.cat = categorize(p.n); p.hasImg = !!p.img; });
   document.getElementById('pfExt').textContent = SECAO.km + ' km';
   document.getElementById('progressLink').href = SECAO.progresso;
   document.getElementById('trocoSwitch').innerHTML = Object.values(SECOES).map(s =>
-    `<a href="${s.id === 'psl' ? 'index.html' : 'index.html?t=' + s.id}"${s.id === SECAO.id ? ' class="active" aria-current="page"' : ''}>${s.curto}</a>`).join('');
+    `<a href="index.html?t=${s.id}"${s.id === SECAO.id ? ' class="active" aria-current="page"' : ''}>${s.curto}</a>`).join('');
 })();
 
 const state = {

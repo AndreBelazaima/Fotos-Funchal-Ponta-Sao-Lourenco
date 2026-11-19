@@ -79,6 +79,7 @@
       '<text x="46" y="51" text-anchor="middle" font-size="16">' + label + '</text></svg>';
   }
   function track(t) {
+    if (t.mapa.indexOf('t=') < 0) t.mapa = 'index.html?t=' + t.id;   // sem ?t= o mapa abre no troço da equipa
     var done = t.concluido || t.pct >= 99.95;
     var chip = done ? '<span class="vg-chip done">&#10003; Concluído</span>' : '<span class="vg-chip live">Em curso</span>';
     var hoje = t.hoje && t.hoje.linhas ? '<span class="vg-today">Hoje: <b>' + t.hoje.linhas + '</b> ' + (t.hoje.linhas === 1 ? 'linha' : 'linhas') + ' &middot; <b>' + pt(t.hoje.metros, 0) + '</b> m</span>' : '';
